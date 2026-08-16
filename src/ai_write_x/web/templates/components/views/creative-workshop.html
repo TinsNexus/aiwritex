@@ -27,7 +27,7 @@
             <h1 class="workshop-title">AIWriteX</h1>
 
             <div class="workshop-subtitle">
-                <span class="subtitle-text">输入话题，唤醒无限创意</span>
+                <span class="subtitle-text" data-i18n="cw.subtitle">输入话题，唤醒无限创意</span>
                 <span class="cursor-blink"></span>
             </div>
         </div>
@@ -38,7 +38,7 @@
             <textarea   
                 id="topic-input"   
                 class="topic-input"  
-                placeholder="输入创作话题，留空自动获取热搜话题..."  
+                placeholder="输入创作话题，留空自动获取热搜话题..." data-i18n-placeholder="cw.topic_placeholder"  
                 rows="4"  
             ></textarea>  
             
@@ -57,7 +57,7 @@
                             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>    
                             <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>    
                         </svg>      
-                        <span>借鉴模式</span>    
+                        <span data-i18n="cw.reference_mode">借鉴模式</span>    
                     </button>  
                       
                     <button id="log-progress-btn" class="toolbar-btn">  
@@ -65,7 +65,7 @@
                             <path d="M12 20h9"/>  
                             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>  
                         </svg>  
-                        <span id="progress-text">运行日志</span>  
+                        <span id="progress-text" data-i18n="cw.run_log">运行日志</span>  
                     </button>  
                 </div>  
                   
@@ -75,7 +75,7 @@
                         <svg class="btn-icon" viewBox="0 0 24 24">  
                             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>  
                         </svg>  
-                        <span>开始生成</span>  
+                        <span data-i18n="cw.start_generate">开始生成</span>  
                     </button>  
                 </div>  
             </div>  
@@ -89,28 +89,28 @@
                         <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>  
                         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>  
                     </svg>  
-                    参数设置  
+                    <span data-i18n="cw.param_settings">参数设置</span>  
                 </h3>  
             </div>  
             
             <div class="panel-content">    
                 <div class="form-row">    
                     <div class="form-group">    
-                        <label for="workshop-template-category">模板分类</label>    
+                        <label for="workshop-template-category" data-i18n="cw.template_category">模板分类</label>    
                         <select id="workshop-template-category" class="form-select">    
-                            <option value="">随机分类</option>    
+                            <option value="" data-i18n="cw.random_category">随机分类</option>    
                             <!-- 动态加载分类选项 -->    
                         </select>    
                     </div>    
                     <div class="form-group">    
-                        <label for="workshop-template-name">模板名称</label>    
+                        <label for="workshop-template-name" data-i18n="cw.template_name">模板名称</label>    
                         <select id="workshop-template-name" class="form-select">    
-                            <option value="">随机模板</option>    
+                            <option value="" data-i18n="cw.random_template">随机模板</option>    
                             <!-- 动态加载模板选项 -->    
                         </select>   
                     </div>  
                     <div class="form-group">    
-                        <label for="reference-ratio">借鉴比例</label>    
+                        <label for="reference-ratio" data-i18n="cw.reference_ratio">借鉴比例</label>    
                         <select id="reference-ratio" class="form-select">    
                             <option value="10">10%</option>    
                             <option value="20">20%</option>    
@@ -124,8 +124,8 @@
                 <!-- 参考链接单独一行 -->  
                 <div class="form-group">  
                     <label for="reference-urls">  
-                        参考链接  
-                        <span class="label-hint">(多个链接用 | 分隔)</span>  
+                        <span data-i18n="cw.reference_links">参考链接</span>  
+                        <span class="label-hint" data-i18n="cw.reference_links_hint">(多个链接用 | 分隔)</span>  
                     </label>  
                     <textarea   
                         id="reference-urls"   
@@ -145,18 +145,18 @@
                         <path d="M12 20h9"/>      
                         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>      
                     </svg>      
-                    日志详情      
+                    <span data-i18n="cw.log_detail">日志详情</span>      
                 </h3>  
                 
                 <!-- 新增:标题栏右侧按钮组 -->  
                 <div class="panel-header-actions">  
-                    <button id="clear-logs-btn" class="icon-btn" title="清空日志">      
+                    <button id="clear-logs-btn" class="icon-btn" title="清空日志" data-i18n-title="cw.clear_logs">      
                         <svg class="btn-icon-small" viewBox="0 0 24 24">      
                             <polyline points="3 6 5 6 21 6"/>      
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>      
                         </svg>      
                     </button>      
-                    <button id="export-logs-btn" class="icon-btn" title="导出日志">      
+                    <button id="export-logs-btn" class="icon-btn" title="导出日志" data-i18n-title="cw.export_logs">      
                         <svg class="btn-icon-small" viewBox="0 0 24 24">      
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>      
                             <polyline points="7 10 12 15 17 10"/>      

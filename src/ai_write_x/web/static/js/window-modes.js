@@ -92,7 +92,7 @@ class WindowModeManager {
     showRestartNotification() {  
         // 直接使用统一的通知系统,警告样式  
         if (window.app && window.app.showNotification) {  
-            window.app.showNotification('窗口模式已修改，请保存后重启生效', 'warning');  
+            window.app.showNotification(window.i18n.t('window.mode_changed'), 'warning');  
         } 
     }  
 }    

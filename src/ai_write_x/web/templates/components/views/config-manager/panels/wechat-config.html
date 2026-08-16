@@ -1,7 +1,7 @@
 <div id="config-wechat" class="config-panel">  
     <div class="config-header">  
-        <h2>微信公众号</h2>  
-        <p class="config-description">设置微信公众号凭证,支持多个账号自动发布</p>  
+        <h2 data-i18n="wechat.heading">微信公众号</h2>  
+        <p class="config-description" data-i18n="wechat.description">设置微信公众号凭证,支持多个账号自动发布</p>  
     </div>  
       
     <div class="config-form">  
@@ -13,7 +13,7 @@
         <!-- 操作按钮 -->  
         <div class="form-row">  
             <button type="button" class="btn btn-secondary" id="add-wechat-credential">  
-                添加凭证  
+                <span data-i18n="wechat.add_credential">添加凭证</span>  
             </button>  
         </div>  
           
@@ -25,11 +25,11 @@
                 <line x1="12" y1="8" x2="12.01" y2="8"/>  
             </svg>  
             <div class="notice-content">  
-                <strong>设置说明:</strong>  
+                <strong data-i18n="common.settings_note">设置说明:</strong>  
                 <ul>  
-                    <li>自动发布时,必填 AppID、AppSecret、作者</li>  
-                    <li>群发选项仅对已认证公众号有效</li>
-                    <li>修改设置仅当前运行有效，永久生效需保存设置</li>  
+                    <li data-i18n="wechat.note_1">自动发布时,必填 AppID、AppSecret、作者</li>  
+                    <li data-i18n="wechat.note_2">群发选项仅对已认证公众号有效</li>
+                    <li data-i18n="common.note_runtime_only">修改设置仅当前运行有效，永久生效需保存设置</li>  
                 </ul>  
             </div>  
         </div> 
@@ -37,10 +37,10 @@
       
     <div class="config-actions">  
         <button type="button" class="btn btn-primary" id="save-wechat-config">  
-            保存设置  
+            <span data-i18n="common.save">保存设置</span>  
         </button>  
         <button type="button" class="btn btn-secondary" id="reset-wechat-config">  
-            恢复默认  
+            <span data-i18n="common.restore_default">恢复默认</span>  
         </button>  
     </div>  
 </div>

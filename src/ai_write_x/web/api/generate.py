@@ -16,6 +16,38 @@ from src.ai_write_x.crew_main import ai_write_x_main
 from src.ai_write_x.tools import hotnews
 from src.ai_write_x.utils import utils, log
 
+from src.ai_write_x.web.i18n import translate
+
+
+# 每类配置错误对应的引导文案：显式映射，不靠猜 key 名里的子串。
+# 前端据 panel 决定跳转到哪个设置页，不再匹配中文子串。
+_ERROR_HINT_KEYS = {
+    "cfgerr.no_api_key": "cfgerr.goto_api",
+    "cfgerr.key_index_range": "cfgerr.goto_api",
+    "cfgerr.no_model": "cfgerr.goto_api_model",
+    "cfgerr.model_index_range": "cfgerr.goto_api_model",
+    "cfgerr.no_img_api_key": "cfgerr.goto_imgapi",
+    "cfgerr.no_img_model": "cfgerr.goto_imgapi",
+    "cfgerr.wechat_credentials": "cfgerr.goto_wechat",
+    # 通用异常：不给出"去配置 API 密钥"这类可能误导的指引
+    "cfgerr.validate_failed": None,
+}
+
+
+def _config_error_detail(config):
+    """构造配置错误响应：含已翻译文案与目标配置面板"""
+    message_key = config.error_message_key
+    if message_key:
+        message = translate(message_key, **(config.error_params or {}))
+    else:
+        # 加载/保存类错误只有中文原文，没有词条 key
+        message = config.error_message or ""
+
+    hint_key = _ERROR_HINT_KEYS.get(message_key, None) if message_key else None
+    text = translate(hint_key, msg=message) if hint_key else translate("cfgerr.prefix", msg=message)
+    return {"message": text, "panel": config.error_panel or "api"}
+
+
 router = APIRouter(prefix="/api", tags=["generate"])
 
 # 全局任务管理
@@ -52,27 +84,16 @@ async def validate_config():
         config = Config.get_instance()
 
         if not config.validate_config():
-            # 根据错误类型返回不同的消息
-            error_msg = config.error_message
+            raise HTTPException(status_code=400, detail=_config_error_detail(config))
 
-            # 检查是否是 API KEY 相关错误
-            if "API KEY" in error_msg or "api_key" in error_msg:
-                detail = f"{error_msg}\n\n请前往【系统设置 → 大模型API】配置您的 API 密钥。"
-            elif "Model" in error_msg or "model" in error_msg:
-                detail = f"{error_msg}\n\n请前往【系统设置 → 大模型API】配置模型参数。"
-            elif "微信公众号" in error_msg or "appid" in error_msg:
-                detail = f"{error_msg}\n\n请前往【系统设置 → 微信公众号】配置账号信息。"
-            else:
-                detail = f"配置错误: {error_msg}"
-
-            raise HTTPException(status_code=400, detail=detail)
-
-        return {"status": "success", "message": "配置验证通过"}
+        return {"status": "success", "message": translate("api.config_valid")}
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"配置验证失败: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=translate("api.validate_failed", msg=str(e))
+        )
 
 
 @router.post("/generate")
@@ -80,14 +101,14 @@ async def generate_content(request: GenerateRequest):
     global _current_process, _current_log_queue, _task_status
 
     if _current_process and _current_process.is_alive():
-        raise HTTPException(status_code=409, detail="任务正在运行中,请先停止当前任务")
+        raise HTTPException(status_code=409, detail=translate("api.task_running"))
 
     try:
         config = Config.get_instance()
 
         # 系统配置校验
         if not config.validate_config():
-            raise HTTPException(status_code=400, detail=f"配置错误: {config.error_message}")
+            raise HTTPException(status_code=400, detail=_config_error_detail(config))
 
         config.custom_topic = request.topic.strip()
         config.urls = []
@@ -118,7 +139,7 @@ async def generate_content(request: GenerateRequest):
                 ]
                 valid_urls = [url for url in urls if utils.is_valid_url(url)]
                 if len(valid_urls) != len(urls):
-                    raise HTTPException(status_code=400, detail="存在无效的URL")
+                    raise HTTPException(status_code=400, detail=translate("api.invalid_url"))
                 config_data["urls"] = valid_urls
 
             config_data["reference_ratio"] = float(request.reference.reference_ratio or 30) / 100
@@ -133,12 +154,12 @@ async def generate_content(request: GenerateRequest):
 
             return {
                 "status": "success",
-                "message": "正在生成内容，请耐心等待...",
+                "message": translate("api.generating"),
                 "mode": "reference" if request.reference else "hot_search",
                 "topic": request.topic,
             }
         else:
-            raise HTTPException(status_code=500, detail="执行启动失败,请检查配置")
+            raise HTTPException(status_code=500, detail=translate("api.start_failed"))
 
     except HTTPException:
         raise
@@ -157,7 +178,7 @@ async def stop_generation():
     global _current_process, _current_log_queue, _task_status
 
     if not _current_process or not _current_process.is_alive():
-        return {"status": "info", "message": "没有正在运行的任务"}
+        return {"status": "info", "message": translate("api.no_running_task")}
 
     try:
         log.print_log("正在停止任务...", "info")
@@ -192,7 +213,7 @@ async def stop_generation():
         _current_log_queue = None
         _task_status = {"status": "stopped", "error": None}
 
-        return {"status": "success", "message": "任务已停止"}
+        return {"status": "success", "message": translate("api.task_stopped")}
 
     except Exception as e:
         log.print_log(f"终止执行时出错: {str(e)}", "error")
@@ -257,7 +278,7 @@ async def websocket_logs(websocket: WebSocket):
                     await websocket.send_json(
                         {
                             "type": "failed",
-                            "message": f"任务执行失败,退出码: {exit_code}",
+                            "message": translate("api.task_failed_code", code=exit_code),
                             "error": f"进程异常退出(exitcode={exit_code})",
                         }
                     )

@@ -28,7 +28,7 @@ class DialogManager {
         body.className = 'dialog-body';  
         body.innerHTML = `  
             <p>${message}</p>  
-            <input type="text" class="dialog-input" value="${defaultValue}" placeholder="请输入...">  
+            <input type="text" class="dialog-input" value="${defaultValue}" placeholder="${window.i18n.t('dialog.input_placeholder')}">  
         `;  
         
         // 对话框底部  
@@ -37,7 +37,7 @@ class DialogManager {
         
         const cancelBtn = document.createElement('button');  
         cancelBtn.className = 'btn btn-secondary';  
-        cancelBtn.textContent = '取消';  
+        cancelBtn.textContent = window.i18n.t('dialog.cancel');  
         cancelBtn.addEventListener('click', () => {  
             this.closeDialog();  
             if (onCancel) onCancel();  
@@ -45,7 +45,7 @@ class DialogManager {
         
         const confirmBtn = document.createElement('button');  
         confirmBtn.className = 'btn btn-primary';  
-        confirmBtn.textContent = '确定';  
+        confirmBtn.textContent = window.i18n.t('dialog.confirm');  
         confirmBtn.addEventListener('click', () => {  
             const input = dialog.querySelector('.dialog-input');  
             const value = input.value.trim();  
@@ -116,7 +116,7 @@ class DialogManager {
         // 对话框头部  
         const header = document.createElement('div');  
         header.className = 'dialog-header';  
-        header.innerHTML = '<h3>系统提示</h3>';  
+        header.innerHTML = `<h3>${window.i18n.t('dialog.system_prompt')}</h3>`;  
           
         // 对话框内容  
         const body = document.createElement('div');  
@@ -129,7 +129,7 @@ class DialogManager {
           
         const cancelBtn = document.createElement('button');  
         cancelBtn.className = 'btn btn-secondary';  
-        cancelBtn.textContent = '取消';  
+        cancelBtn.textContent = window.i18n.t('dialog.cancel');  
         cancelBtn.addEventListener('click', () => {  
             this.closeDialog();  
             if (onCancel) onCancel();  
@@ -137,7 +137,7 @@ class DialogManager {
           
         const confirmBtn = document.createElement('button');  
         confirmBtn.className = 'btn btn-primary';  
-        confirmBtn.textContent = '确定';  
+        confirmBtn.textContent = window.i18n.t('dialog.confirm');  
         confirmBtn.addEventListener('click', () => {  
             this.closeDialog();  
             if (onConfirm) onConfirm();  
@@ -190,7 +190,7 @@ class DialogManager {
         const header = document.createElement('div');  
         header.className = 'dialog-header';  
         const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';  
-        header.innerHTML = `<h3>${icon} 提示</h3>`;  
+        header.innerHTML = `<h3>${icon} ${window.i18n.t('dialog.hint')}</h3>`;  
           
         const body = document.createElement('div');  
         body.className = 'dialog-body';  
@@ -201,7 +201,7 @@ class DialogManager {
           
         const okBtn = document.createElement('button');  
         okBtn.className = 'btn btn-primary';  
-        okBtn.textContent = '确定';  
+        okBtn.textContent = window.i18n.t('dialog.confirm');  
         okBtn.addEventListener('click', () => this.closeDialog());  
           
         footer.appendChild(okBtn);  

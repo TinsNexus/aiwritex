@@ -4,7 +4,7 @@
         <div class="header-content">  
             <div>  
                 <h2>AIForge</h2>  
-                <p class="config-description">设置AIForge引擎的LLM提供商和缓存参数</p>  
+                <p class="config-description" data-i18n="aiforge.description">设置AIForge引擎的LLM提供商和缓存参数</p>  
             </div>  
         </div>  
     </div>  
@@ -13,23 +13,23 @@
         <!-- 通用设置 -->  
         <div class="config-section">  
             <h3 class="section-title">  
-                通用设置  
+                <span data-i18n="aiforge.general_section">通用设置</span>  
             </h3>  
             <div class="form-row">  
                 <div class="form-group form-group-third">  
-                    <label for="aiforge-locale">语言</label>  
-                    <input type="text" id="aiforge-locale" class="form-control" value="中文" disabled>  
-                    <small class="form-help">AIForge使用的语言</small>  
+                    <label for="aiforge-locale" data-i18n="aiforge.locale">语言</label>  
+                    <input type="text" id="aiforge-locale" class="form-control" value="中文" data-i18n-value="aiforge.locale_value" disabled>  
+                    <small class="form-help" data-i18n="aiforge.locale_help">AIForge使用的语言</small>  
                 </div>  
                 <div class="form-group form-group-third">  
-                    <label for="aiforge-max-rounds">最大重试次数</label>  
+                    <label for="aiforge-max-rounds" data-i18n="aiforge.max_rounds">最大重试次数</label>  
                     <input type="number" id="aiforge-max-rounds" class="form-control" min="1" max="16">  
-                    <small class="form-help">代码生成最大重试次数</small>  
+                    <small class="form-help" data-i18n="aiforge.max_rounds_help">代码生成最大重试次数</small>  
                 </div>  
                 <div class="form-group form-group-third">  
-                    <label for="aiforge-default-max-tokens">默认最大Tokens</label>  
+                    <label for="aiforge-default-max-tokens" data-i18n="aiforge.max_tokens">默认最大Tokens</label>  
                     <input type="number" id="aiforge-default-max-tokens" class="form-control" min="1024">  
-                    <small class="form-help">默认的最大Token数量</small>  
+                    <small class="form-help" data-i18n="aiforge.max_tokens_help">默认的最大Token数量</small>  
                 </div>  
             </div>  
         </div> 
@@ -41,7 +41,7 @@
         <!-- 代码缓存设置 -->  
         <div class="config-section">  
             <h3 class="section-title">  
-                代码缓存设置  
+                <span data-i18n="aiforge.cache_section">代码缓存设置</span>  
             </h3>  
             
             <!-- 第一行:启用缓存、最大模块数、失败阈值 -->  
@@ -50,33 +50,33 @@
                     <label class="checkbox-label">  
                         <input type="checkbox" id="cache-enabled">  
                         <span class="checkbox-custom"></span>  
-                        启用缓存  
+                        <span data-i18n="aiforge.cache_enable">启用缓存</span>  
                     </label>  
-                    <small class="form-help">启用代码缓存以提高性能</small>  
+                    <small class="form-help" data-i18n="aiforge.cache_enable_help">启用代码缓存以提高性能</small>  
                 </div>  
                 <div class="form-group form-group-third">  
-                    <label for="cache-max-modules">最大模块数</label>  
+                    <label for="cache-max-modules" data-i18n="aiforge.cache_max_modules">最大模块数</label>  
                     <input type="number" id="cache-max-modules" class="form-control" min="1">  
-                    <small class="form-help">缓存的最大模块数量</small>  
+                    <small class="form-help" data-i18n="aiforge.cache_max_modules_help">缓存的最大模块数量</small>  
                 </div>  
                 <div class="form-group form-group-third">  
-                    <label for="cache-failure-threshold">失败阈值</label>  
+                    <label for="cache-failure-threshold" data-i18n="aiforge.cache_failure">失败阈值</label>  
                     <input type="number" id="cache-failure-threshold" class="form-control" min="0" max="1" step="0.1">  
-                    <small class="form-help">触发清理的失败率阈值</small>  
+                    <small class="form-help" data-i18n="aiforge.cache_failure_help">触发清理的失败率阈值</small>  
                 </div>  
             </div>  
             
             <!-- 第二行:最大保存天数、清理间隔 -->  
             <div class="form-row">  
                 <div class="form-group form-group-third">  
-                    <label for="cache-max-save-days">最大保存天数</label>  
+                    <label for="cache-max-save-days" data-i18n="aiforge.cache_days">最大保存天数</label>  
                     <input type="number" id="cache-max-save-days" class="form-control" min="1">  
-                    <small class="form-help">缓存文件的最大保存天数</small>  
+                    <small class="form-help" data-i18n="aiforge.cache_days_help">缓存文件的最大保存天数</small>  
                 </div>  
                 <div class="form-group form-group-third">  
-                    <label for="cache-cleanup-interval">清理间隔(小时)</label>  
+                    <label for="cache-cleanup-interval" data-i18n="aiforge.cache_interval">清理间隔(小时)</label>  
                     <input type="number" id="cache-cleanup-interval" class="form-control" min="1">  
-                    <small class="form-help">自动清理的时间间隔</small>  
+                    <small class="form-help" data-i18n="aiforge.cache_interval_help">自动清理的时间间隔</small>  
                 </div>  
             </div>  
         </div> 
@@ -89,11 +89,11 @@
                 <line x1="12" y1="8" x2="12.01" y2="8"/>  
             </svg>  
             <div class="notice-content">  
-                <strong>设置说明:</strong>  
+                <strong data-i18n="common.settings_note">设置说明:</strong>  
                 <ul>  
-                    <li>选择一个LLM提供商作为AIForge的默认模型</li>  
-                    <li>通用设置和缓存设置通常无需修改</li>  
-                    <li>修改设置仅当前运行有效,永久生效需保存设置</li>  
+                    <li data-i18n="aiforge.note_1">选择一个LLM提供商作为AIForge的默认模型</li>  
+                    <li data-i18n="aiforge.note_2">通用设置和缓存设置通常无需修改</li>  
+                    <li data-i18n="aiforge.note_runtime_only">修改设置仅当前运行有效,永久生效需保存设置</li>  
                 </ul>  
             </div>  
         </div>  
@@ -101,10 +101,10 @@
       
     <div class="config-actions">  
         <button type="button" class="btn btn-primary" id="save-aiforge-config">  
-            保存设置  
+            <span data-i18n="common.save">保存设置</span>  
         </button>  
         <button type="button" class="btn btn-secondary" id="reset-aiforge-config">  
-            恢复默认  
+            <span data-i18n="common.restore_default">恢复默认</span>  
         </button>  
     </div>  
 </div>

@@ -44,7 +44,7 @@ class UpdateChecker {
             // 改为灰色  
             statusIndicator.style.background = 'var(--primary-hover-color)';
 
-            statusText.innerHTML = `新版本 ${this.updateInfo.latest_version} 可用`;
+            statusText.innerHTML = window.i18n.t('update.available_status', { version: this.updateInfo.latest_version });
             statusIndicator.style.cursor = 'pointer';
             statusIndicator.onclick = () => this.showUpdateDialog();
         }
@@ -53,7 +53,7 @@ class UpdateChecker {
     showUpdateNotification() {
         if (window.showNotification) {
             window.showNotification(
-                `发现新版本 ${this.updateInfo.latest_version}`,
+                window.i18n.t('update.found', { version: this.updateInfo.latest_version }),
                 'info',
                 5000
             );
@@ -66,26 +66,26 @@ class UpdateChecker {
         dialog.innerHTML = `    
         <div class="update-dialog">    
             <div class="update-dialog-header">    
-                <h3>🚀 发现新版本 ${this.updateInfo.latest_version}</h3>    
+                <h3>${window.i18n.t('update.dialog_title', { version: this.updateInfo.latest_version })}</h3>    
                 <button class="close-btn" onclick="this.closest('.update-dialog-overlay').remove()">×</button>    
             </div>    
             <div class="update-dialog-content">    
                 <div class="version-info">    
-                    <p><strong>当前版本:</strong> ${this.updateInfo.current_version}</p>    
-                    <p><strong>最新版本:</strong> ${this.updateInfo.latest_version}</p>    
+                    <p><strong>${window.i18n.t('update.current_version')}</strong> ${this.updateInfo.current_version}</p>    
+                    <p><strong>${window.i18n.t('update.latest_version')}</strong> ${this.updateInfo.latest_version}</p>    
                 </div>    
                 <div class="release-notes">    
-                    <h4>更新内容:</h4>    
-                    <pre>${this.updateInfo.release_notes || '暂无更新说明'}</pre>    
+                    <h4>${window.i18n.t('update.release_notes')}</h4>    
+                    <pre>${this.updateInfo.release_notes || window.i18n.t('update.no_notes')}</pre>    
                 </div>    
             </div>    
             <div class="update-dialog-actions">    
                 <button class="btn btn-primary" onclick="openDownloadPage()">    
-                    官网下载    
+                    ${window.i18n.t('update.download')}    
                 </button>   
                 
                 <button class="btn btn-outline" onclick="this.closest('.update-dialog-overlay').remove()">    
-                    稍后提醒    
+                    ${window.i18n.t('update.later')}    
                 </button>    
             </div>    
         </div>    

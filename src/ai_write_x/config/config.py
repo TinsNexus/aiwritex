@@ -52,6 +52,11 @@ class Config:
         self.config: Dict[Any, Any] = {}
         self.aiforge_config: Dict[Any, Any] = {}
         self.error_message = None
+        # 结构化的配置错误信息：供界面决定跳转到哪个配置面板并做多语言展示。
+        # error_message 保持中文原文，供 CLI 日志使用。
+        self.error_panel = ""
+        self.error_message_key = ""
+        self.error_params = {}
         self.config_path = self.__get_config_path()
         self.config_aiforge_path = self.__get_config_path("aiforge.toml")
         self.config_dimensional_path = self.__get_config_path("dimensional_creative_config.yaml")
@@ -1878,8 +1883,17 @@ class Config:
                 raise ValueError("配置未加载")
             return self.config
 
+    def __set_error(self, panel, message_key, **params):
+        """记录结构化错误信息：界面据此跳转配置面板并按当前语言展示文案"""
+        self.error_panel = panel
+        self.error_message_key = message_key
+        self.error_params = params
+
     def validate_config(self):
         """验证配置,仅在 CrewAI 执行时调用"""
+        self.error_panel = ""
+        self.error_message_key = ""
+        self.error_params = {}
         try:
             # 获取 API 配置
             api_type = self.api_type
@@ -1889,34 +1903,40 @@ class Config:
             api_keys = api_config.get("api_key", [])
             if not api_keys or not any(api_keys):
                 self.error_message = f"未配置API KEY，请打开配置填写{api_type}的api_key"
+                self.__set_error("api", "cfgerr.no_api_key", api_type=api_type)
                 return False
 
             # 检查 key_index 是否有效
             key_index = api_config.get("key_index", 0)
             if key_index >= len(api_keys):
                 self.error_message = f"{api_type}的key_index({key_index})超出范围，api_key列表只有{len(api_keys)}个元素"  # noqa 501
+                self.__set_error("api", "cfgerr.key_index_range", api_type=api_type, index=key_index, count=len(api_keys))  # noqa 501
                 return False
 
             # 检查选中的 api_key 是否为空
             if not api_keys[key_index]:
                 self.error_message = f"未配置API KEY，请打开配置填写{api_type}的api_key"
+                self.__set_error("api", "cfgerr.no_api_key", api_type=api_type)
                 return False
 
             # 检查 model 列表
             models = api_config.get("model", [])
             if not models:
                 self.error_message = f"未配置Model，请打开配置填写{api_type}的model"
+                self.__set_error("api", "cfgerr.no_model", api_type=api_type)
                 return False
 
             # 检查 model_index 是否有效
             model_index = api_config.get("model_index", 0)
             if model_index >= len(models):
                 self.error_message = f"{api_type}的model_index({model_index})超出范围，model列表只有{len(models)}个元素"  # noqa 501
+                self.__set_error("api", "cfgerr.model_index_range", api_type=api_type, index=model_index, count=len(models))  # noqa 501
                 return False
 
             # 检查选中的 model 是否为空
             if not models[model_index]:
                 self.error_message = f"未配置Model，请打开配置填写{api_type}的model"
+                self.__set_error("api", "cfgerr.no_model", api_type=api_type)
                 return False
 
             # 检查图片生成配置
@@ -1933,6 +1953,7 @@ class Config:
                     self.error_message = (
                         f"未配置图片生成模型的API KEY，请打开配置填写{self.img_api_type}的api_key"
                     )
+                    self.__set_error("img-api", "cfgerr.no_img_api_key", api_type=self.img_api_type)
                     return False
 
                 img_models = img_api_config.get("model", [])
@@ -1946,6 +1967,7 @@ class Config:
                     self.error_message = (
                         f"未配置图片生成的模型，请打开配置填写{self.img_api_type}的model"
                     )
+                    self.__set_error("img-api", "cfgerr.no_img_model", api_type=self.img_api_type)
                     return False
 
             # 检查自动发布配置
@@ -1955,6 +1977,7 @@ class Config:
                 )
                 if not valid_cred:
                     self.error_message = "【自动发布】时，需配置微信公众号appid和appsecret"
+                    self.__set_error("wechat", "cfgerr.wechat_credentials")
                     return False
 
             # 检查 AIForge 配置
@@ -1965,6 +1988,7 @@ class Config:
 
         except Exception as e:
             self.error_message = f"配置验证失败: {e}"
+            self.__set_error("api", "cfgerr.validate_failed", msg=str(e))
             return False
 
     def reload_config(self):

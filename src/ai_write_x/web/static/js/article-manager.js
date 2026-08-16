@@ -68,7 +68,7 @@ class ArticleManager {
             }    
         } catch (error) {    
             console.error('加载文章失败:', error);    
-            this.showNotification('加载文章失败', 'error');    
+            this.showNotification(window.i18n.t('art.load_failed'), 'error');    
         }    
     }  
         
@@ -87,7 +87,7 @@ class ArticleManager {
         const statuses = [  
             {   
                 key:'all',   
-                label: '全部文章',   
+                label: window.i18n.t('art.all_articles'),   
                 icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>  
                     <polyline points="14,2 14,8 20,8"/>  
@@ -95,7 +95,7 @@ class ArticleManager {
             },  
             {   
                 key: 'published',   
-                label: '已发布',   
+                label: window.i18n.t('art.published'),   
                 icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>  
                     <polyline points="22 4 12 14.01 9 11.01"/>  
@@ -103,7 +103,7 @@ class ArticleManager {
             },  
             {   
                 key: 'failed',   
-                label: '发布失败',   
+                label: window.i18n.t('art.publish_failed_status'),   
                 icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                     <circle cx="12" cy="12" r="10"/>  
                     <line x1="15" y1="9" x2="9" y2="15"/>  
@@ -112,7 +112,7 @@ class ArticleManager {
             },  
             {   
                 key: 'unpublished',   
-                label: '未发布',   
+                label: window.i18n.t('art.unpublished'),   
                 icon: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                     <circle cx="12" cy="12" r="10"/>  
                     <line x1="8" y1="12" x2="16" y2="12"/>  
@@ -153,7 +153,7 @@ class ArticleManager {
         
         // 添加空状态判断  
         if (this.filteredArticles.length === 0) {    
-            grid.innerHTML = '<div class="empty-state">暂无文章</div>';    
+            grid.innerHTML = `<div class="empty-state">${window.i18n.t('art.empty')}</div>`;    
             return;    
         }  
         
@@ -188,10 +188,10 @@ class ArticleManager {
         }[article.status] || 'unpublished';  
         
         const statusText = {  
-            'published': '已发布',  
-            'failed': '发布失败',  
-            'unpublished': '未发布'  
-        }[article.status] || '未发布';  
+            'published': window.i18n.t('art.published'),  
+            'failed': window.i18n.t('art.publish_failed_status'),  
+            'unpublished': window.i18n.t('art.unpublished')  
+        }[article.status] || window.i18n.t('art.unpublished');  
         
         // 时间格式化函数  
         const formatTime = (timeStr) => {  
@@ -199,9 +199,9 @@ class ArticleManager {
             const today = new Date();  
             const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));  
             
-            if (diffDays === 0) return '今天';  
-            if (diffDays === 1) return '昨天';  
-            if (diffDays < 7) return `${diffDays}天前`;  
+            if (diffDays === 0) return window.i18n.t('common.today');  
+            if (diffDays === 1) return window.i18n.t('common.yesterday');  
+            if (diffDays < 7) return window.i18n.t('common.days_ago', { n: diffDays });  
             return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });  
         };  
         
@@ -211,11 +211,11 @@ class ArticleManager {
                 <span class="checkbox-custom"></span>  
             </label>  
             <div class="card-preview">  
-                <iframe sandbox="allow-same-origin allow-scripts"   
+                <iframe sandbox="allow-scripts"   
                         loading="lazy"   
                         data-article-path="${article.path}"  
                         data-loaded="false"></iframe>  
-                <div class="preview-loading">加载中...</div>  
+                <div class="preview-loading">${window.i18n.t('common.loading')}</div>  
             </div>  
             <div class="card-content">  
                 <h4 class="card-title" title="${this.escapeHtml(article.title)}">${this.escapeHtml(article.title)}</h4>  
@@ -224,7 +224,7 @@ class ArticleManager {
                     <span class="meta-divider">•</span>  
                     <span class="status-badge ${statusClass}"     
                         data-article-path="${article.path}"    
-                        title="点击查看发布记录">    
+                        title="${window.i18n.t('art.view_publish_record')}">    
                         ${statusText}    
                     </span>   
                     <span class="meta-divider">•</span>  
@@ -234,13 +234,13 @@ class ArticleManager {
                 </div> 
             </div>  
             <div class="card-actions">  
-                <button class="btn-icon" data-action="edit" title="编辑">  
+                <button class="btn-icon" data-action="edit" title="${window.i18n.t('common.edit')}">  
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>  
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>  
                     </svg>  
                 </button>  
-                <button class="btn-icon" data-action="illustration" title="设计">  
+                <button class="btn-icon" data-action="illustration" title="${window.i18n.t('art.action_illustration')}">  
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                         <rect x="3" y="3" width="7" height="7"/>  
                         <rect x="14" y="3" width="7" height="7"/>  
@@ -249,13 +249,13 @@ class ArticleManager {
                         <path d="M10 10l4 4"/>  
                     </svg>     
                 </button>  
-                <button class="btn-icon" data-action="publish" title="发布">  
+                <button class="btn-icon" data-action="publish" title="${window.i18n.t('art.action_publish')}">  
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                         <path d="M22 2L11 13"/>  
                         <path d="M22 2l-7 20-4-9-9-4 20-7z"/>  
                     </svg>  
                 </button>  
-                <button class="btn-icon" data-action="delete" title="删除">  
+                <button class="btn-icon" data-action="delete" title="${window.i18n.t('common.delete')}">  
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                         <polyline points="3 6 5 6 21 6"/>  
                         <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>  
@@ -275,9 +275,7 @@ class ArticleManager {
             if (ext === 'md' || ext === 'markdown' || ext === 'txt') {  
                 // 显示警告对话框,让用户选择是否继续  
                 window.dialogManager.showConfirm(  
-                    `警告: ${ext.toUpperCase()} 格式文件不适合使用可视化设计器编辑。\n` +  
-                    `使用页面设计器可能会破坏原始格式,建议使用"编辑"功能进行修改。\n` +  
-                    `是否仍要继续使用页面设计器？`,  
+                    window.i18n.t('art.designer_format_warning', { ext: ext.toUpperCase() }),  
                     async () => {  
                         // 用户点击确认,继续打开设计器  
                         if (!window.imageDesignerDialog) {  
@@ -297,7 +295,7 @@ class ArticleManager {
                 await window.imageDesignerDialog.open(article.path, article.title);  
             }  
         } catch (error) {  
-            this.showNotification('打开配图设计器失败: ' + error.message, 'error');  
+            this.showNotification(window.i18n.t('art.open_designer_failed', { msg: error.message }), 'error');  
         }  
     }
 
@@ -306,7 +304,7 @@ class ArticleManager {
         try {  
             const response = await fetch(`/api/articles/publish-history/${encodeURIComponent(article.path)}`);  
             if (!response.ok) {  
-                throw new Error('获取发布历史失败');  
+                throw new Error(window.i18n.t('art.get_history_failed'));  
             }  
             
             const result = await response.json();  
@@ -315,7 +313,7 @@ class ArticleManager {
             // 显示发布历史对话框  
             this.renderPublishHistoryDialog(article, records);  
         } catch (error) {  
-            this.showNotification('获取发布历史失败: ' + error.message, 'error');  
+            this.showNotification(window.i18n.t('art.get_history_failed_msg', { msg: error.message }), 'error');  
         }  
     }  
     
@@ -324,7 +322,7 @@ class ArticleManager {
             <div class="modal-overlay" id="publish-history-dialog">  
                 <div class="modal-content publish-history-modal">  
                     <div class="modal-header">  
-                        <h3>发布记录</h3>  
+                        <h3>${window.i18n.t('art.publish_record')}</h3>  
                         <button class="modal-close" onclick="window.articleManager.closePublishHistoryDialog()">×</button>  
                     </div>  
                     <div class="modal-body">  
@@ -343,7 +341,7 @@ class ArticleManager {
                                     <line x1="12" y1="8" x2="12" y2="12"/>  
                                     <line x1="12" y1="16" x2="12.01" y2="16"/>  
                                 </svg>  
-                                <p>暂无发布记录</p>  
+                                <p>${window.i18n.t('art.no_publish_record')}</p>  
                             </div>  
                         ` : `  
                             <div class="history-timeline">  
@@ -352,9 +350,9 @@ class ArticleManager {
                                     const accountInfo = record.account_info || {};  
                                     const platform = record.platform || 'unknown';  
                                     const platformName = {  
-                                        'wechat': '微信公众号',  
-                                        'xiaohongshu': '小红书',  
-                                        'douyin': '抖音'  
+                                        'wechat': window.i18n.t('platform.wechat'),  
+                                        'xiaohongshu': window.i18n.t('platform.xiaohongshu'),  
+                                        'douyin': window.i18n.t('platform.douyin')  
                                     }[platform] || platform;  
                                     
                                     return `  
@@ -376,7 +374,7 @@ class ArticleManager {
                                             <div class="history-content">  
                                                 <div class="history-header">  
                                                     <span class="history-platform">${this.escapeHtml(platformName)}</span>  
-                                                    <span class="history-account">${this.escapeHtml(accountInfo.author || '未知账号')}</span>  
+                                                    <span class="history-account">${this.escapeHtml(accountInfo.author || window.i18n.t('art.unknown_account'))}</span>  
                                                     ${accountInfo.appid ? `<span class="history-appid">AppID: ${this.escapeHtml(accountInfo.appid)}</span>` : ''}  
                                                 </div>  
                                                 <div class="history-time">${this.formatHistoryTime(record.timestamp)}</div>  
@@ -420,10 +418,10 @@ class ArticleManager {
         const diffHours = Math.floor(diffMs / 3600000);  
         const diffDays = Math.floor(diffMs / 86400000);  
         
-        if (diffMins < 1) return '刚刚';  
-        if (diffMins < 60) return `${diffMins}分钟前`;  
-        if (diffHours < 24) return `${diffHours}小时前`;  
-        if (diffDays < 7) return `${diffDays}天前`;  
+        if (diffMins < 1) return window.i18n.t('art.just_now');  
+        if (diffMins < 60) return window.i18n.t('art.minutes_ago', { n: diffMins });  
+        if (diffHours < 24) return window.i18n.t('art.hours_ago', { n: diffHours });  
+        if (diffDays < 7) return window.i18n.t('common.days_ago', { n: diffDays });  
         
         return date.toLocaleString('zh-CN', {  
             year: 'numeric',  
@@ -657,8 +655,8 @@ class ArticleManager {
             iframe.dataset.loaded = 'true';    
             if (loadingEl) loadingEl.style.display = 'none';    
         } catch (error) {    
-            iframe.srcdoc = '<div style="padding: 20px; color: red;">加载失败</div>';    
-            if (loadingEl) loadingEl.textContent = '加载失败';    
+            iframe.srcdoc = `<div style="padding: 20px; color: red;">${window.i18n.t('common.load_failed')}</div>`;    
+            if (loadingEl) loadingEl.textContent = window.i18n.t('common.load_failed');    
         }    
     }
     
@@ -748,9 +746,9 @@ class ArticleManager {
             this.renderStatusTree();  
             this.renderArticles();
 
-            window.app?.showNotification('已刷新文章列表', 'success');  
+            window.app?.showNotification(window.i18n.t('art.refreshed'), 'success');  
         } catch (error) {  
-            window.app?.showNotification('刷新失败: ' + error.message, 'error');  
+            window.app?.showNotification(window.i18n.t('err.refresh_failed', { msg: error.message }), 'error');  
         }  
     }
 
@@ -780,7 +778,7 @@ class ArticleManager {
         if (this.batchMode) {  
             // 进入批量模式  
             toggleBtn.classList.add('active');  
-            batchText.textContent = '退出批量';  
+            batchText.textContent = window.i18n.t('art.exit_batch');  
             batchCount.style.display = 'inline';  
             subActions.style.display = 'flex';  
             
@@ -791,7 +789,7 @@ class ArticleManager {
         } else {  
             // 退出批量模式  
             toggleBtn.classList.remove('active');  
-            batchText.textContent = '批量操作';  
+            batchText.textContent = window.i18n.t('art.batch_mode');  
             batchCount.style.display = 'none';  
             subActions.style.display = 'none';  
             
@@ -816,7 +814,7 @@ class ArticleManager {
         const batchDelete = document.getElementById('batch-delete');  
         
         if (batchCount) {  
-            batchCount.textContent = `(已选 ${count})`;  
+            batchCount.textContent = window.i18n.t('art.batch_count', { n: count });  
         }  
         
         // 根据选中数量启用/禁用子按钮  
@@ -917,13 +915,13 @@ class ArticleManager {
                 if (window.previewPanelManager) {  
                     window.previewPanelManager.show(htmlContent);  
                 } else {  
-                    this.showNotification('预览面板未初始化', 'error');  
+                    this.showNotification(window.i18n.t('preview.not_initialized'), 'error');  
                 }  
             } else {  
-                throw new Error('加载失败');  
+                throw new Error(window.i18n.t('common.load_failed'));  
             }  
         } catch (error) {  
-            this.showNotification('预览失败: ' + error.message, 'error');  
+            this.showNotification(window.i18n.t('err.preview_failed', { msg: error.message }), 'error');  
         }  
     }
     
@@ -936,7 +934,7 @@ class ArticleManager {
     // 批量发布  
     async batchPublish() {  
         if (this.selectedArticles.size === 0) {  
-            this.showNotification('请先选择要发布的文章', 'warning');  
+            this.showNotification(window.i18n.t('art.select_to_publish'), 'warning');  
             return;  
         }  
         
@@ -958,7 +956,7 @@ class ArticleManager {
             // 填充平台选择器  
             const platformSelect = document.getElementById('publish-platform-select');  
             if (platformSelect) {  
-                platformSelect.innerHTML = '<option value="">请选择发布平台...</option>' +  
+                platformSelect.innerHTML = `<option value="">${window.i18n.t('art.select_platform_placeholder')}</option>` +  
                     this.platforms.map(p => `<option value="${p.value}">${p.label}</option>`).join('');  
             }  
             
@@ -972,7 +970,7 @@ class ArticleManager {
             // 显示对话框  
             document.getElementById('publish-dialog').style.display = 'flex';  
         } catch (error) {  
-            this.showNotification('加载平台列表失败: ' + error.message, 'error');  
+            this.showNotification(window.i18n.t('art.load_platforms_failed', { msg: error.message }), 'error');  
         }  
     }
     
@@ -998,7 +996,7 @@ class ArticleManager {
             
             // 获取该平台的账号列表    
             const response = await fetch('/api/config/');    
-            if (!response.ok) throw new Error('加载配置失败');    
+            if (!response.ok) throw new Error(window.i18n.t('art.load_config_failed'));    
             
             const config = await response.json();    
             let accounts = [];    
@@ -1009,7 +1007,7 @@ class ArticleManager {
                 
                 accounts = validCredentials.map((cred, index) => ({    
                     index: allCredentials.indexOf(cred),    
-                    author: cred.author || '未命名',    
+                    author: cred.author || window.i18n.t('art.unnamed'),    
                     appid: cred.appid
                 }));    
             }   
@@ -1019,7 +1017,7 @@ class ArticleManager {
             
             this.renderPlatformAccounts(platformId, accounts);    
         } catch (error) {    
-            this.showNotification('加载账号失败: ' + error.message, 'error');    
+            this.showNotification(window.i18n.t('art.load_accounts_failed', { msg: error.message }), 'error');    
         }    
     }
     
@@ -1069,7 +1067,7 @@ class ArticleManager {
         const selectedItems = document.querySelectorAll('.account-item.selected');  // ✅ 修正  
         const count = selectedItems.length;    
         
-        document.getElementById('selected-account-count').textContent = `(已选 ${count} 个)`;    
+        document.getElementById('selected-account-count').textContent = window.i18n.t('art.selected_account_count', { n: count });    
         document.getElementById('confirm-publish-btn').disabled = count === 0;    
     } 
     
@@ -1129,7 +1127,7 @@ class ArticleManager {
         ).map(item => parseInt(item.dataset.accountIndex));  
         
         if (!platformId || selectedAccounts.length === 0) {  
-            this.showNotification('请选择平台和账号', 'warning');  
+            this.showNotification(window.i18n.t('art.select_platform_account'), 'warning');  
             return;  
         }  
         
@@ -1156,15 +1154,15 @@ class ArticleManager {
                 // 获取文章标题  
                 const articleTitles = articlePaths.map(path => {  
                     const article = this.articles.find(a => a.path === path);  
-                    return article ? article.title : '未知文章';  
-                }).filter(title => title !== '未知文章');  
+                    return article ? article.title : window.i18n.t('art.unknown_article');  
+                }).filter(title => title !== window.i18n.t('art.unknown_article'));  
                 
                 // 构建标题前缀  
                 let titlePrefix = '';  
                 if (articleTitles.length === 1) {  
                     titlePrefix = `《${articleTitles[0]}》 `;  
                 } else if (articleTitles.length > 1) {  
-                    titlePrefix = `《${articleTitles[0]}》等${articleTitles.length}篇 `;  
+                    titlePrefix = window.i18n.t('art.title_prefix_multi', { title: articleTitles[0], count: articleTitles.length });  
                 }  
                 
                 // 检查进度对话框是否仍然存在  
@@ -1175,13 +1173,13 @@ class ArticleManager {
                     this.updateProgressDialogWithResult(result);  
                 } else {  
                     // 对话框已关闭 - 显示右上角通知(简洁版本,包含文章标题)  
-                    let notificationMessage = titlePrefix + '发布完成: ';  // 添加标题前缀  
+                    let notificationMessage = titlePrefix + window.i18n.t('art.publish_done_prefix');  // 添加标题前缀  
                     if (result.success_count > 0 && result.fail_count > 0) {  
-                        notificationMessage += `成功 ${result.success_count}, 失败 ${result.fail_count}`;  
+                        notificationMessage += window.i18n.t('art.success_fail', { s: result.success_count, f: result.fail_count });  
                     } else if (result.success_count > 0) {  
-                        notificationMessage += `成功 ${result.success_count}`;  
+                        notificationMessage += window.i18n.t('art.success_n', { n: result.success_count });  
                     } else {  
-                        notificationMessage += `失败 ${result.fail_count}`;  
+                        notificationMessage += window.i18n.t('art.fail_n', { n: result.fail_count });  
                     }  
                     
                     this.showNotification(  
@@ -1194,19 +1192,19 @@ class ArticleManager {
                 let marqueeMessage = titlePrefix;  // 以标题开头  
                 
                 if (result.success_count > 0 && result.fail_count === 0) {  
-                    marqueeMessage += `发布完成: 成功 ${result.success_count}`;  
+                    marqueeMessage += window.i18n.t('art.publish_done_prefix') + window.i18n.t('art.success_n', { n: result.success_count });  
                 } else if (result.success_count > 0 && result.fail_count > 0) {  
-                    marqueeMessage += `发布完成: 成功 ${result.success_count}, 失败 ${result.fail_count}`;  
+                    marqueeMessage += window.i18n.t('art.publish_done_prefix') + window.i18n.t('art.success_fail', { s: result.success_count, f: result.fail_count });  
                 } else {  
-                    marqueeMessage += `发布完成: 失败 ${result.fail_count}`;  
+                    marqueeMessage += window.i18n.t('art.publish_done_prefix') + window.i18n.t('art.fail_n', { n: result.fail_count });  
                 }  
                 
                 // 添加详细信息(最多3条)  
                 if (result.error_details && result.error_details.length > 0) {  
                     const details = result.error_details.slice(0, 3).join('; ');  
-                    marqueeMessage += ` | 详情: ${details}`;  
+                    marqueeMessage += window.i18n.t('art.detail_suffix', { details: details });  
                     if (result.error_details.length > 3) {  
-                        marqueeMessage += `...等${result.error_details.length}条`;  
+                        marqueeMessage += window.i18n.t('art.more_items', { n: result.error_details.length });  
                     }  
                 }  
                 
@@ -1246,10 +1244,10 @@ class ArticleManager {
                         if (statusBadge && article) {  
                             statusBadge.className = `status-badge ${article.status}`;  
                             statusBadge.textContent = {  
-                                'published': '已发布',  
-                                'failed': '发布失败',  
-                                'unpublished': '未发布'  
-                            }[article.status] || '未发布';  
+                                'published': window.i18n.t('art.published'),  
+                                'failed': window.i18n.t('art.publish_failed_status'),  
+                                'unpublished': window.i18n.t('art.unpublished')  
+                            }[article.status] || window.i18n.t('art.unpublished');  
                         }  
                     }  
                 });  
@@ -1259,14 +1257,14 @@ class ArticleManager {
                 this.batchMode = false;  
                 this.toggleBatchMode();  
             } else {  
-                throw new Error('发布请求失败');  
+                throw new Error(window.i18n.t('art.publish_request_failed'));  
             }  
         } catch (error) {  
-            this.showNotification('发布失败: ' + error.message, 'error');  
+            this.showNotification(window.i18n.t('art.publish_failed_msg', { msg: error.message }), 'error');  
             
             if (window.footerMarquee) {  
                 window.footerMarquee.addMessage(  
-                    '发布失败: ' + error.message,  
+                    window.i18n.t('art.publish_failed_msg', { msg: error.message }),  
                     'error',  
                     false,  
                     1  
@@ -1310,13 +1308,13 @@ class ArticleManager {
         
         modalBody.innerHTML = `  
             <div class="result-summary ${resultType}">  
-                <h4>发布完成</h4>  
-                ${result.success_count > 0 ? `<p>✓ 成功: ${result.success_count}</p>` : ''}  
-                ${result.fail_count > 0 ? `<p>✗ 失败: ${result.fail_count}</p>` : ''}  
+                <h4>${window.i18n.t('art.publish_complete')}</h4>  
+                ${result.success_count > 0 ? `<p>✓ ${window.i18n.t('art.success_label')}: ${result.success_count}</p>` : ''}  
+                ${result.fail_count > 0 ? `<p>✗ ${window.i18n.t('art.fail_label')}: ${result.fail_count}</p>` : ''}  
             </div>  
             ${allDetails.length > 0 ? `  
                 <div class="error-details">  
-                    <h5 style="color: ${result.fail_count > 0 && result.success_count === 0 ? '#ef4444' : '#f59e0b'};">结果详情</h5>  
+                    <h5 style="color: ${result.fail_count > 0 && result.success_count === 0 ? '#ef4444' : '#f59e0b'};">${window.i18n.t('art.result_detail')}</h5>  
                     <div class="error-list">  
                         ${allDetails.map(item => `  
                             <div class="${item.type === 'warning' ? 'warning-item' : 'error-item'}">${this.escapeHtml(item.text)}</div>  
@@ -1328,7 +1326,7 @@ class ArticleManager {
         
         // 更新对话框头部和按钮  
         const header = dialog.querySelector('.modal-header h3');  
-        if (header) header.textContent = '发布结果';  
+        if (header) header.textContent = window.i18n.t('art.publish_result');  
         
         const closeBtn = dialog.querySelector('.modal-close');  
         if (closeBtn) closeBtn.onclick = () => this.closeProgressDialog();  
@@ -1342,8 +1340,8 @@ class ArticleManager {
         }  
         
         footer.innerHTML = `  
-            <button class="btn btn-secondary" onclick="window.articleManager.closeProgressDialog()">关闭</button>  
-            <button class="btn btn-primary" onclick="window.open('https://mp.weixin.qq.com', '_blank')">打开公众号后台</button>  
+            <button class="btn btn-secondary" onclick="window.articleManager.closeProgressDialog()">${window.i18n.t('editor.close')}</button>  
+            <button class="btn btn-primary" onclick="window.open('https://mp.weixin.qq.com', '_blank')">${window.i18n.t('art.open_wechat_console')}</button>  
         `;  
     }
 
@@ -1353,13 +1351,13 @@ class ArticleManager {
         const parts = [];  
         
         if (success_count > 0) {  
-            parts.push(`成功 ${success_count}`);  
+            parts.push(window.i18n.t('art.success_n', { n: success_count }));  
         }  
         if (fail_count > 0) {  
-            parts.push(`失败 ${fail_count}`);  
+            parts.push(window.i18n.t('art.fail_n', { n: fail_count }));  
         }  
         
-        return parts.length > 0 ? `发布完成: ${parts.join(', ')}` : '发布完成';  
+        return parts.length > 0 ? window.i18n.t('art.publish_done_prefix') + parts.join(', ') : window.i18n.t('art.publish_complete');  
     }
 
     // 推送发布结果到走马灯  
@@ -1369,23 +1367,23 @@ class ArticleManager {
         const { success_count, fail_count, error_details } = result;  
         
         // 构建详细的结果消息  
-        let message = '发布完成: ';  
+        let message = window.i18n.t('art.publish_done_prefix');  
         
         // 只显示非零的统计  
         if (success_count > 0 && fail_count > 0) {  
-            message += `成功 ${success_count}, 失败 ${fail_count}`;  
+            message += window.i18n.t('art.success_fail', { s: success_count, f: fail_count });  
         } else if (success_count > 0) {  
-            message += `成功 ${success_count}`;  
+            message += window.i18n.t('art.success_n', { n: success_count });  
         } else if (fail_count > 0) {  
-            message += `失败 ${fail_count}`;  
+            message += window.i18n.t('art.fail_n', { n: fail_count });  
         }  
         
         // 添加失败详情(最多显示3条)  
         if (fail_count > 0 && error_details && error_details.length > 0) {  
             const details = error_details.slice(0, 3).join('; ');  
-            message += ` | 失败详情: ${details}`;  
+            message += window.i18n.t('art.fail_detail_suffix', { details: details });  
             if (error_details.length > 3) {  
-                message += `...还有${error_details.length - 3}个错误`;  
+                message += window.i18n.t('art.more_errors', { n: error_details.length - 3 });  
             }  
         }  
         
@@ -1403,13 +1401,13 @@ class ArticleManager {
             <div class="modal-overlay" id="publish-progress-dialog" data-user-closed="false">    
                 <div class="modal-content publish-progress-modal">    
                     <div class="modal-header">    
-                        <h3>正在发布</h3>    
+                        <h3>${window.i18n.t('art.publishing')}</h3>    
                         ${showCloseButton ? '<button class="btn-icon modal-close" onclick="window.articleManager.closeProgressDialog()">×</button>' : ''}    
                     </div>  
                     <div class="modal-body">    
                         <div class="progress-info">    
-                            <p>正在发布 ${articleCount} 篇文章到 ${accountCount} 个账号...</p>    
-                            <p class="progress-detail">您可以关闭此窗口,发布将在后台继续</p>    
+                            <p>${window.i18n.t('art.publishing_detail', { articles: articleCount, accounts: accountCount })}</p>    
+                            <p class="progress-detail">${window.i18n.t('art.publishing_background')}</p>    
                         </div>    
                         <div class="progress-spinner">    
                             <svg class="spinner" viewBox="0 0 50 50">    
@@ -1435,14 +1433,14 @@ class ArticleManager {
         const { success_count, fail_count } = result;  
         
         // 构建简洁消息  
-        let message = '发布完成';  
+        let message = window.i18n.t('art.publish_complete');  
         const parts = [];  
         
         if (success_count > 0) {  
-            parts.push(`成功 ${success_count}`);  
+            parts.push(window.i18n.t('art.success_n', { n: success_count }));  
         }  
         if (fail_count > 0) {  
-            parts.push(`失败 ${fail_count}`);  
+            parts.push(window.i18n.t('art.fail_n', { n: fail_count }));  
         }  
         
         if (parts.length > 0) {  
@@ -1458,20 +1456,20 @@ class ArticleManager {
         const { success_count, fail_count, error_details } = result;  
         
         let statusClass = 'success';  
-        let statusText = '发布成功';  
+        let statusText = window.i18n.t('art.publish_success');  
         if (fail_count > 0 && success_count > 0) {  
             statusClass = 'warning';  
-            statusText = '部分成功';  
+            statusText = window.i18n.t('art.partial_success');  
         } else if (fail_count > 0) {  
             statusClass = 'error';  
-            statusText = '发布失败';  
+            statusText = window.i18n.t('art.publish_failed_status');  
         }  
         
         const dialogHtml = `  
             <div id="publish-result-dialog" class="modal-overlay">  
                 <div class="modal-content publish-result-modal">  
                     <div class="modal-header">  
-                        <h3>发布结果</h3>  
+                        <h3>${window.i18n.t('art.publish_result')}</h3>  
                         <button class="modal-close" onclick="window.articleManager.closeResultDialog()">×</button>  
                     </div>  
                     <div class="modal-body">  
@@ -1481,13 +1479,13 @@ class ArticleManager {
                                 ${success_count > 0 ? `  
                                     <div class="stat-item">  
                                         <div class="stat-number success">${success_count}</div>  
-                                        <div class="stat-label">成功</div>  
+                                        <div class="stat-label">${window.i18n.t('art.success_label')}</div>  
                                     </div>  
                                 ` : ''}  
                                 ${fail_count > 0 ? `  
                                     <div class="stat-item">  
                                         <div class="stat-number failed">${fail_count}</div>  
-                                        <div class="stat-label">失败</div>  
+                                        <div class="stat-label">${window.i18n.t('art.fail_label')}</div>  
                                     </div>  
                                 ` : ''}  
                             </div>  
@@ -1496,7 +1494,7 @@ class ArticleManager {
                         ${error_details && error_details.length > 0 ? `  
                             <div class="error-details-section">  
                                 <div class="error-details-header">  
-                                    <span class="error-details-title">失败详情</span>  
+                                    <span class="error-details-title">${window.i18n.t('art.fail_detail_title')}</span>  
                                 </div>  
                                 <div class="error-list">  
                                     ${error_details.map(err => `  
@@ -1507,8 +1505,8 @@ class ArticleManager {
                         ` : ''}  
                     </div>  
                     <div class="modal-footer">  
-                        <button class="btn btn-secondary" onclick="window.articleManager.closeResultDialog()">关闭</button>  
-                        <button class="btn btn-primary" onclick="window.open('https://mp.weixin.qq.com', '_blank')">打开公众号后台</button>  
+                        <button class="btn btn-secondary" onclick="window.articleManager.closeResultDialog()">${window.i18n.t('editor.close')}</button>  
+                        <button class="btn btn-primary" onclick="window.open('https://mp.weixin.qq.com', '_blank')">${window.i18n.t('art.open_wechat_console')}</button>  
                     </div>  
                 </div>  
             </div>  
@@ -1529,7 +1527,7 @@ class ArticleManager {
     // 删除文章  
     async deleteArticle(path) {  
         window.dialogManager.showConfirm(  
-            '确认删除这篇文章吗?',  
+            window.i18n.t('art.confirm_delete_one'),  
             async () => {  
                 try {  
                     const response = await fetch(`/api/articles/${encodeURIComponent(path)}`, {  
@@ -1537,15 +1535,15 @@ class ArticleManager {
                     });  
                     
                     if (response.ok) {  
-                        this.showNotification('文章已删除', 'success');  
+                        this.showNotification(window.i18n.t('art.article_deleted'), 'success');  
                         await this.loadArticles();  
                         this.renderStatusTree(); 
                     } else {  
                         const error = await response.json();  
-                        window.dialogManager.showAlert('删除失败: ' + (error.detail || '未知错误'), 'error');  
+                        window.dialogManager.showAlert(window.i18n.t('err.delete_failed', { msg: error.detail || window.i18n.t('common.unknown_error') }), 'error');  
                     }  
                 } catch (error) {  
-                    window.dialogManager.showAlert('删除失败: ' + error.message, 'error');  
+                    window.dialogManager.showAlert(window.i18n.t('err.delete_failed', { msg: error.message }), 'error');  
                 }  
             }  
         );  
@@ -1554,14 +1552,14 @@ class ArticleManager {
     // 批量删除  
     async batchDelete() {  
         if (this.selectedArticles.size === 0) {  
-            this.showNotification('请先选择要删除的文章', 'warning');  
+            this.showNotification(window.i18n.t('art.select_to_delete'), 'warning');  
             return;  
         }  
         
         const count = this.selectedArticles.size;  
         
         window.dialogManager.showConfirm(  
-            `确认删除选中的 ${count} 篇文章吗?`,  
+            window.i18n.t('art.confirm_delete_many', { count: count }),  
             async () => {  
                 const paths = Array.from(this.selectedArticles);  
                 let successCount = 0;  
@@ -1581,7 +1579,7 @@ class ArticleManager {
                     }  
                 }  
                 
-                this.showNotification(`删除完成: ${successCount}/${count}`, 'success');  
+                this.showNotification(window.i18n.t('art.delete_done', { ok: successCount, total: count }), 'success');  
                 
                 // 更新数据  
                 await this.loadArticles();  
@@ -1616,7 +1614,7 @@ class ArticleManager {
             }  
             await window.contentEditorDialog.open(article.path, article.title, 'article');  
         } catch (error) {  
-            this.showNotification('打开编辑器失败: ' + error.message, 'error');  
+            this.showNotification(window.i18n.t('err.open_editor_failed', { msg: error.message }), 'error');  
         }  
     }
 }  

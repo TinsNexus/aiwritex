@@ -3,34 +3,34 @@ class AIWriteXConfigManager {
         // 维度分组定义  
         this.DIMENSION_GROUPS = {  
             'expression': {  
-                name: '文体表达维度',  
+                nameKey: 'dimgroup.style_expression',  
                 icon: 'icon-text',  
                 dimensions: ['style', 'language', 'tone'],  
-                description: '控制文章的文体风格、语言风格和语调语气'  
+                descriptionKey: 'dimgroup.style_expression_desc'  
             },  
             'culture': {  
-                name: '文化时空维度',  
+                nameKey: 'dimgroup.culture_time',  
                 icon: 'icon-globe',  
                 dimensions: ['culture', 'time', 'scene'],  
-                description: '设置文化视角、时空背景和场景环境'  
+                descriptionKey: 'dimgroup.culture_time_desc'  
             },  
             'character': {  
-                name: '角色技法维度',  
+                nameKey: 'dimgroup.role_technique',  
                 icon: 'icon-user',  
                 dimensions: ['personality', 'technique', 'perspective'],  
-                description: '选择人格角色、表现技法和叙述视角'  
+                descriptionKey: 'dimgroup.role_technique_desc'  
             },  
             'structure': {  
-                name: '结构节奏维度',  
+                nameKey: 'dimgroup.structure_rhythm',  
                 icon: 'icon-layout',  
                 dimensions: ['structure', 'rhythm'],  
-                description: '定义文章结构和节奏韵律'  
+                descriptionKey: 'dimgroup.structure_rhythm_desc'  
             },  
             'audience': {  
-                name: '受众主题维度',  
+                nameKey: 'dimgroup.audience_theme',  
                 icon: 'icon-target',  
                 dimensions: ['audience', 'theme', 'emotion', 'format'],  
-                description: '针对目标受众、主题内容、情感调性和表达格式'  
+                descriptionKey: 'dimgroup.audience_theme_desc'  
             }  
         };
 
@@ -70,11 +70,14 @@ class AIWriteXConfigManager {
             if (window.themeManager) {    
                 window.themeManager.onConfigLoaded();    
             }    
-            if (window.windowModeManager) {    
-                window.windowModeManager.onConfigLoaded();    
-            }    
-            
-            // 6. 最后绑定导航事件(确保DOM已加载)    
+            if (window.windowModeManager) {
+                window.windowModeManager.onConfigLoaded();
+            }
+            if (window.localeManager) {
+                window.localeManager.onConfigLoaded();
+            }
+
+            // 6. 最后绑定导航事件(确保DOM已加载)
             this.bindConfigNavigation();    
         } catch (error) {    
         }    
@@ -93,7 +96,7 @@ class AIWriteXConfigManager {
                 const saveBtn = document.getElementById('save-ui-config');    
                 if (saveBtn && !saveBtn.classList.contains('has-changes')) {    
                     saveBtn.classList.add('has-changes');    
-                    saveBtn.innerHTML = '保存设置 <span style="color: var(--warning-color);">(有未保存更改)</span>';    
+                    saveBtn.innerHTML = window.i18n.t('common.save_with_changes');    
                 }  
             });    
         }    
@@ -110,7 +113,7 @@ class AIWriteXConfigManager {
                 const saveBtn = document.getElementById('save-ui-config');    
                 if (saveBtn && !saveBtn.classList.contains('has-changes')) {    
                     saveBtn.classList.add('has-changes');    
-                    saveBtn.innerHTML = '保存设置 <span style="color: var(--warning-color);">(有未保存更改)</span>';    
+                    saveBtn.innerHTML = window.i18n.t('common.save_with_changes');    
                 }  
             });    
         }  
@@ -127,7 +130,7 @@ class AIWriteXConfigManager {
                 const saveBtn = document.getElementById('save-ui-config');  
                 if (saveBtn && !saveBtn.classList.contains('has-changes')) {  
                     saveBtn.classList.add('has-changes');  
-                    saveBtn.innerHTML = '保存设置 <span style="color: var(--warning-color);">(有未保存更改)</span>';  
+                    saveBtn.innerHTML = window.i18n.t('common.save_with_changes');  
                 }  
             });  
         } 
@@ -138,19 +141,24 @@ class AIWriteXConfigManager {
             saveUIConfigBtn.addEventListener('click', async () => {    
                 const success = await this.saveUIConfig(this.uiConfig);    
                 
-                if (success) {  
-                    // 清除未保存提示  
-                    const saveBtn = document.getElementById('save-ui-config');  
-                    if (saveBtn) {  
-                        saveBtn.classList.remove('has-changes');  
-                        saveBtn.innerHTML = '保存设置';  
-                    }  
-                }  
-                
-                window.app?.showNotification(  
-                    success ? '界面设置已保存' : '保存界面设置失败',  
-                    success ? 'success' : 'error'  
-                );  
+                if (success) {
+                    // 清除未保存提示
+                    const saveBtn = document.getElementById('save-ui-config');
+                    if (saveBtn) {
+                        saveBtn.classList.remove('has-changes');
+                        saveBtn.innerHTML = window.i18n.t('common.save');
+                    }
+                }
+
+                window.app?.showNotification(
+                    success ? window.i18n.t('config.ui.saved') : window.i18n.t('config.ui.save_failed'),
+                    success ? 'success' : 'error'
+                );
+
+                // 语言变更需重新加载页面才能应用新的语言包
+                if (success) {
+                    window.localeManager?.reloadIfLocaleChanged();
+                }
             });    
         }
         
@@ -158,12 +166,15 @@ class AIWriteXConfigManager {
         const resetUIConfigBtn = document.getElementById('reset-ui-config');    
         if (resetUIConfigBtn) {    
             resetUIConfigBtn.addEventListener('click', async () => {    
-                const oldWindowMode = this.uiConfig.windowMode;    
-                this.uiConfig = {   
-                    theme: 'light',   
-                    windowMode: 'STANDARD',  
-                    designTheme: 'follow-system'  
-                };    
+                const oldWindowMode = this.uiConfig.windowMode;
+                this.uiConfig = {
+                    theme: 'light',
+                    windowMode: 'STANDARD',
+                    designTheme: 'follow-system',
+                    // 语言不参与"恢复默认"：它决定用户能否读懂界面，
+                    // 被重置回中文后非中文用户将很难找回原语言
+                    locale: this.uiConfig.locale
+                };
                 
                 // 更新UI显示    
                 const themeSelector = document.getElementById('theme-selector');    
@@ -192,10 +203,10 @@ class AIWriteXConfigManager {
                 const success = await this.saveConfig();  
                 if (success) {  
                     saveBaseConfigBtn.classList.remove('has-changes');  
-                    saveBaseConfigBtn.innerHTML = '保存设置';  
+                    saveBaseConfigBtn.innerHTML = window.i18n.t('common.save');  
                 }  
                 window.app?.showNotification(  
-                    success ? '基础设置已保存' : '保存基础设置失败',  
+                    success ? window.i18n.t('cfgm.base_saved') : window.i18n.t('cfgm.base_save_failed'),  
                     success ? 'success' : 'error'  
                 );  
             });  
@@ -207,7 +218,7 @@ class AIWriteXConfigManager {
             resetBaseConfigBtn.addEventListener('click', async () => {  
                 const success = await this.resetToDefault();  
                 window.app?.showNotification(  
-                    success ? '已恢复默认设置' : '恢复默认设置失败',  
+                    success ? window.i18n.t('cfgm.defaults_restored') : window.i18n.t('cfgm.defaults_restore_failed'),  
                     success ? 'info' : 'error'  
                 );  
             });  
@@ -275,7 +286,7 @@ class AIWriteXConfigManager {
                     // 添加"随机模板"选项  
                     const randomOption = document.createElement('option');  
                     randomOption.value = '';  
-                    randomOption.textContent = '随机模板';  
+                    randomOption.textContent = window.i18n.t('cw.random_template');  
                     templateSelect.appendChild(randomOption);  
                     
                     // 加载新分类的模板  
@@ -356,12 +367,12 @@ class AIWriteXConfigManager {
                     const saveBtn = document.getElementById('save-platforms-config');  
                     if (saveBtn) {  
                         saveBtn.classList.remove('has-changes');  
-                        saveBtn.innerHTML = '保存设置';  
+                        saveBtn.innerHTML = window.i18n.t('common.save');  
                     }  
                 }  
                 
                 window.app?.showNotification(    
-                    success ? '平台配置已保存' : '保存平台配置失败',    
+                    success ? window.i18n.t('cfgm.platform_saved') : window.i18n.t('cfgm.platform_save_failed'),    
                     success ? 'success' : 'error'    
                 );    
             });    
@@ -383,9 +394,9 @@ class AIWriteXConfigManager {
                     // 刷新UI  
                     this.populatePlatformsUI();  
                     
-                    window.app?.showNotification('已恢复默认平台配置', 'info');  
+                    window.app?.showNotification(window.i18n.t('cfgm.platform_defaults_restored'), 'info');  
                 } else {  
-                    window.app?.showNotification('恢复默认配置失败', 'error');  
+                    window.app?.showNotification(window.i18n.t('cfgm.restore_defaults_failed'), 'error');  
                 }  
             });  
         }
@@ -423,9 +434,9 @@ class AIWriteXConfigManager {
                     
                     this.populateWeChatUI();  
                     
-                    window.app?.showNotification('已恢复默认微信配置', 'info');  
+                    window.app?.showNotification(window.i18n.t('cfgm.wechat_defaults_restored'), 'info');  
                 } else {  
-                    window.app?.showNotification('恢复默认配置失败', 'error');  
+                    window.app?.showNotification(window.i18n.t('cfgm.restore_defaults_failed'), 'error');  
                 }  
             });  
         }
@@ -468,11 +479,11 @@ class AIWriteXConfigManager {
                 
                 if (success) {  
                     saveAPIConfigBtn.classList.remove('has-changes');  
-                    saveAPIConfigBtn.innerHTML = '保存设置';  
+                    saveAPIConfigBtn.innerHTML = window.i18n.t('common.save');  
                 }  
                 
                 window.app?.showNotification(  
-                    success ? 'API配置已保存' : '保存API配置失败',  
+                    success ? window.i18n.t('cfgm.api_saved') : window.i18n.t('cfgm.api_save_failed'),  
                     success ? 'success' : 'error'  
                 );  
             });  
@@ -491,9 +502,9 @@ class AIWriteXConfigManager {
                     
                     this.populateAPIUI();  
                     
-                    window.app?.showNotification('已恢复默认API配置', 'info');  
+                    window.app?.showNotification(window.i18n.t('cfgm.api_defaults_restored'), 'info');  
                 } else {  
-                    window.app?.showNotification('恢复默认配置失败', 'error');  
+                    window.app?.showNotification(window.i18n.t('cfgm.restore_defaults_failed'), 'error');  
                 }  
             });  
         }
@@ -506,11 +517,11 @@ class AIWriteXConfigManager {
                 
                 if (success) {  
                     saveImgAPIConfigBtn.classList.remove('has-changes');  
-                    saveImgAPIConfigBtn.innerHTML = '保存设置';  
+                    saveImgAPIConfigBtn.innerHTML = window.i18n.t('common.save');  
                 }  
                 
                 window.app?.showNotification(  
-                    success ? '图片API配置已保存' : '保存图片API配置失败',  
+                    success ? window.i18n.t('cfgm.imgapi_saved') : window.i18n.t('cfgm.imgapi_save_failed'),  
                     success ? 'success' : 'error'  
                 );  
             });  
@@ -532,11 +543,11 @@ class AIWriteXConfigManager {
                 
                 if (success) {  
                     saveAIForgeConfigBtn.classList.remove('has-changes');  
-                    saveAIForgeConfigBtn.innerHTML = '保存设置';  
+                    saveAIForgeConfigBtn.innerHTML = window.i18n.t('common.save');  
                 }  
                 
                 window.app?.showNotification(  
-                    success ? 'AIForge配置已保存' : '保存AIForge配置失败',  
+                    success ? window.i18n.t('cfgm.aiforge_saved') : window.i18n.t('cfgm.aiforge_save_failed'),  
                     success ? 'success' : 'error'  
                 );  
             });  
@@ -555,9 +566,9 @@ class AIWriteXConfigManager {
                     
                     this.populateAIForgeUI();  
                     
-                    window.app?.showNotification('已恢复默认AIForge配置', 'info');  
+                    window.app?.showNotification(window.i18n.t('cfgm.aiforge_defaults_restored'), 'info');  
                 } else {  
-                    window.app?.showNotification('恢复默认配置失败', 'error');  
+                    window.app?.showNotification(window.i18n.t('cfgm.restore_defaults_failed'), 'error');  
                 }  
             });  
         }
@@ -772,11 +783,11 @@ class AIWriteXConfigManager {
                 
                 if (success) {  
                     saveCreativeConfigBtn.classList.remove('has-changes');  
-                    saveCreativeConfigBtn.innerHTML = '保存设置';  
+                    saveCreativeConfigBtn.innerHTML = window.i18n.t('common.save');  
                 }  
                 
                 window.app?.showNotification(  
-                    success ? '创意配置已保存' : '保存创意配置失败',  
+                    success ? window.i18n.t('cfgm.creative_saved') : window.i18n.t('cfgm.creative_save_failed'),  
                     success ? 'success' : 'error'  
                 );  
             });  
@@ -795,9 +806,9 @@ class AIWriteXConfigManager {
                     
                     this.populateCreativeUI();  
                     
-                    window.app?.showNotification('已恢复默认创意配置', 'info');  
+                    window.app?.showNotification(window.i18n.t('cfgm.creative_defaults_restored'), 'info');  
                 } else {  
-                    window.app?.showNotification('恢复默认配置失败', 'error');  
+                    window.app?.showNotification(window.i18n.t('cfgm.restore_defaults_failed'), 'error');  
                 }  
             });  
         }
@@ -813,7 +824,7 @@ class AIWriteXConfigManager {
                 const saveBtn = document.getElementById('save-page-design-config');    
                 if (saveBtn && !saveBtn.classList.contains('has-changes')) {    
                     saveBtn.classList.add('has-changes');    
-                    saveBtn.innerHTML = '保存设置 <span style="color: var(--warning-color);">(有未保存更改)</span>';    
+                    saveBtn.innerHTML = window.i18n.t('common.save_with_changes');    
                 }    
             });    
         }  
@@ -838,7 +849,7 @@ class AIWriteXConfigManager {
                     await this.updateConfig({ page_design: defaultPageDesign });  
                     this.populatePageDesignUI();  
                     
-                    window.app?.showNotification('已恢复默认页面设计配置', 'info');  
+                    window.app?.showNotification(window.i18n.t('cfgm.imgdes_defaults_restored'), 'info');  
                 }  
             });  
         }  
@@ -860,7 +871,7 @@ class AIWriteXConfigManager {
                     const saveBtn = document.getElementById('save-page-design-config');  
                     if (saveBtn && !saveBtn.classList.contains('has-changes')) {  
                         saveBtn.classList.add('has-changes');  
-                        saveBtn.innerHTML = '保存设置 <span style="color: var(--warning-color);">(有未保存更改)</span>';  
+                        saveBtn.innerHTML = window.i18n.t('common.save_with_changes');  
                     }  
                 });  
             }  
@@ -998,12 +1009,12 @@ class AIWriteXConfigManager {
             const saveBtn = document.getElementById('save-page-design-config');  
             if (saveBtn) {  
                 saveBtn.classList.remove('has-changes');  
-                saveBtn.innerHTML = '<i class="icon-save"></i> 保存设置';  
+                saveBtn.innerHTML = window.i18n.t('cfgm.save_with_icon');  
             }  
         }  
         
         window.app?.showNotification(  
-            success ? '页面设计配置已保存' : '保存配置失败',  
+            success ? window.i18n.t('cfgm.imgdes_saved') : window.i18n.t('cfgm.save_config_failed'),  
             success ? 'success' : 'error'  
         );  
     }
@@ -1078,7 +1089,7 @@ class AIWriteXConfigManager {
                         // 添加"随机模板"选项  
                         const randomOption = document.createElement('option');  
                         randomOption.value = '';  
-                        randomOption.textContent = '随机模板';  
+                        randomOption.textContent = window.i18n.t('cw.random_template');  
                         templateSelect.appendChild(randomOption);  
                         
                         // 添加模板选项  
@@ -1397,7 +1408,7 @@ class AIWriteXConfigManager {
             this.populateWeChatUI();  
             
             window.app?.showNotification(  
-                '已添加新凭证,请填写后保存',  
+                window.i18n.t('cfgm.cred_added'),  
                 'info'  
             );  
         });  
@@ -1407,7 +1418,7 @@ class AIWriteXConfigManager {
     deleteWeChatCredential(index) {  
         if (index === 0) {  
             window.app?.showNotification(  
-                '第一个凭证不能删除',  
+                window.i18n.t('cfgm.cred_first_undeletable'),  
                 'warning'  
             );  
             return;  
@@ -1422,7 +1433,7 @@ class AIWriteXConfigManager {
             this.populateWeChatUI();  
             
             window.app?.showNotification(  
-                '凭证已删除',  
+                window.i18n.t('cfgm.cred_deleted'),  
                 'info'  
             );  
         });  
@@ -1440,7 +1451,7 @@ class AIWriteXConfigManager {
             if (this.config.auto_publish) {  
                 if (!cred.appid || !cred.appsecret || !cred.author) {  
                     window.app?.showNotification(  
-                        `凭证 ${i + 1} 缺少必填字段(AppID/AppSecret/作者)`,  
+                        window.i18n.t('cfgm.cred_missing_fields', { n: i + 1 }),  
                         'error'  
                     );  
                     return;  
@@ -1455,12 +1466,12 @@ class AIWriteXConfigManager {
             const saveBtn = document.getElementById('save-wechat-config');  
             if (saveBtn) {  
                 saveBtn.classList.remove('has-changes');  
-                saveBtn.innerHTML = '保存配置';  
+                saveBtn.innerHTML = window.i18n.t('cfgm.save_config');  
             }  
         }  
         
         window.app?.showNotification(  
-            success ? '微信配置已保存' : '保存微信配置失败',  
+            success ? window.i18n.t('cfgm.wechat_saved') : window.i18n.t('cfgm.wechat_save_failed'),  
             success ? 'success' : 'error'  
         );  
     }
@@ -1477,11 +1488,11 @@ class AIWriteXConfigManager {
         
         const title = document.createElement('div');  
         title.className = 'credential-title';  
-        title.textContent = `凭证 ${index + 1}`;  
+        title.textContent = window.i18n.t('cfgm.cred_title', { n: index + 1 });  
         
         const deleteBtn = document.createElement('button');  
         deleteBtn.className = 'credential-delete-btn';  
-        deleteBtn.textContent = '删除';  
+        deleteBtn.textContent = window.i18n.t('common.delete');  
         deleteBtn.disabled = index === 0; // 第一个凭证不能删除  
         deleteBtn.addEventListener('click', () => {  
             this.deleteWeChatCredential(index);  
@@ -1503,7 +1514,7 @@ class AIWriteXConfigManager {
             'text',  
             `wechat-appid-${index}`,  
             credential.appid || '',  
-            '微信公众号AppID',  
+            window.i18n.t('cfgm.wechat_appid'),  
             true  
         );  
         appidGroup.classList.add('form-group-third');  
@@ -1513,17 +1524,17 @@ class AIWriteXConfigManager {
             'password',  
             `wechat-appsecret-${index}`,  
             credential.appsecret || '',  
-            '微信公众号AppSecret',  
+            window.i18n.t('cfgm.wechat_appsecret'),  
             true  
         );  
         appsecretGroup.classList.add('form-group-third');  
         
         const authorGroup = this.createFormGroup(  
-            '作者',  
+            window.i18n.t('cfgm.author'),  
             'text',  
             `wechat-author-${index}`,  
             credential.author || '',  
-            '文章作者名称'  
+            window.i18n.t('cfgm.author_placeholder')  
         );  
         authorGroup.classList.add('form-group-third');  
         
@@ -1544,7 +1555,7 @@ class AIWriteXConfigManager {
         
         const callSendallLabel = document.createElement('label');  
         callSendallLabel.className = 'checkbox-label';  
-        callSendallLabel.title = '1. 启用群发,群发才生效\n2. 否则不启用,需要网页后台群发';  
+        callSendallLabel.title = window.i18n.t('cfgm.call_sendall_title');  
         
         const callSendallCheckbox = document.createElement('input');  
         callSendallCheckbox.type = 'checkbox';  
@@ -1557,7 +1568,7 @@ class AIWriteXConfigManager {
         const callSendallCustom = document.createElement('span');  
         callSendallCustom.className = 'checkbox-custom';  
         
-        const callSendallText = document.createTextNode('启用群发');  
+        const callSendallText = document.createTextNode(window.i18n.t('cfgm.call_sendall'));  
         
         callSendallLabel.appendChild(callSendallCheckbox);  
         callSendallLabel.appendChild(callSendallCustom);  
@@ -1566,7 +1577,7 @@ class AIWriteXConfigManager {
         
         const callSendallHelp = document.createElement('small');  
         callSendallHelp.className = 'form-help';  
-        callSendallHelp.textContent = '仅对已认证公众号生效';  
+        callSendallHelp.textContent = window.i18n.t('cfgm.call_sendall_help');  
         callSendallGroup.appendChild(callSendallHelp);  
         
         // 群发复选框  
@@ -1575,7 +1586,7 @@ class AIWriteXConfigManager {
         
         const sendallLabel = document.createElement('label');  
         sendallLabel.className = 'checkbox-label';  
-        sendallLabel.title = '1. 认证号群发数量有限,群发可控\n2. 非认证号,此选项无效(不支持群发)';  
+        sendallLabel.title = window.i18n.t('cfgm.sendall_title');  
         
         // 群发复选框  
         const sendallCheckbox = document.createElement('input');  
@@ -1594,7 +1605,7 @@ class AIWriteXConfigManager {
         const sendallCustom = document.createElement('span');  
         sendallCustom.className = 'checkbox-custom';  
         
-        const sendallText = document.createTextNode('群发');  
+        const sendallText = document.createTextNode(window.i18n.t('cfgm.sendall'));  
         
         sendallLabel.appendChild(sendallCheckbox);  
         sendallLabel.appendChild(sendallCustom);  
@@ -1603,16 +1614,16 @@ class AIWriteXConfigManager {
         
         const sendallHelp = document.createElement('small');  
         sendallHelp.className = 'form-help';  
-        sendallHelp.textContent = '发送给所有关注者';  
+        sendallHelp.textContent = window.i18n.t('cfgm.sendall_help');  
         sendallGroup.appendChild(sendallHelp);  
         
         // 标签组ID部分  
         const tagIdGroup = this.createFormGroup(  
-            '标签组ID',  
+            window.i18n.t('cfgm.tag_id'),  
             'number',  
             `wechat-tag-id-${index}`,  
             credential.tag_id || 0,  
-            '群发的标签组ID'  
+            window.i18n.t('cfgm.tag_id_placeholder')  
         );  
         const tagIdInput = tagIdGroup.querySelector('input');  
         tagIdInput.classList.add('tag-id-input');  // 添加特定宽度类  
@@ -1667,19 +1678,19 @@ class AIWriteXConfigManager {
     // 获取平台描述  
     getPlatformDescription(platformName) {  
         const descriptions = {  
-            '微博': '社交媒体热搜话题',  
-            '抖音': '短视频平台热点',  
-            '小红书': '生活方式分享平台',  
-            '今日头条': '新闻资讯聚合',  
-            '百度热点': '搜索引擎热搜',  
-            '哔哩哔哩': '视频弹幕网站',  
-            '快手': '短视频社交平台',  
-            '虎扑': '体育社区论坛',  
-            '豆瓣小组': '文化兴趣社区',  
-            '澎湃新闻': '专业新闻媒体',  
-            '知乎热榜': '问答社区热榜'  
+            '微博': window.i18n.t('platdesc.weibo'),  
+            '抖音': window.i18n.t('platdesc.douyin'),  
+            '小红书': window.i18n.t('platdesc.xiaohongshu'),  
+            '今日头条': window.i18n.t('platdesc.toutiao'),  
+            '百度热点': window.i18n.t('platdesc.baidu'),  
+            '哔哩哔哩': window.i18n.t('platdesc.bilibili'),  
+            '快手': window.i18n.t('platdesc.kuaishou'),  
+            '虎扑': window.i18n.t('platdesc.hupu'),  
+            '豆瓣小组': window.i18n.t('platdesc.douban'),  
+            '澎湃新闻': window.i18n.t('platdesc.thepaper'),  
+            '知乎热榜': window.i18n.t('platdesc.zhihu')  
         };  
-        return descriptions[platformName] || '热搜话题来源';  
+        return descriptions[platformName] || window.i18n.t('platdesc.default');  
     }
 
     // 填充大模型API UI  
@@ -1692,7 +1703,7 @@ class AIWriteXConfigManager {
         // 更新当前API类型指示器  
         const indicator = document.getElementById('current-api-type');  
         if (indicator) {  
-            indicator.textContent = currentAPIType === 'SiliconFlow' ? '硅基流动' : currentAPIType;  
+            indicator.textContent = currentAPIType === 'SiliconFlow' ? window.i18n.t('cfgm.siliconflow') : currentAPIType;  
         }  
         
         // 清空现有内容  
@@ -1703,7 +1714,7 @@ class AIWriteXConfigManager {
             .filter(key => key !== 'api_type')  // 排除api_type字段  
             .map(key => ({  
                 key: key,  
-                display: key === 'SiliconFlow' ? '硅基流动' : key  
+                display: key === 'SiliconFlow' ? window.i18n.t('cfgm.siliconflow') : key  
             }));  
         
         // 生成提供商卡片  
@@ -1737,14 +1748,14 @@ class AIWriteXConfigManager {
         
         const badge = document.createElement('span');  
         badge.className = `provider-badge ${providerKey === currentAPIType ? 'active' : 'inactive'}`;  
-        badge.textContent = providerKey === currentAPIType ? '使用中' : '未使用';  
+        badge.textContent = window.i18n.t(providerKey === currentAPIType ? 'cfgm.in_use' : 'cfgm.not_in_use');  
         
         titleGroup.appendChild(name);  
         titleGroup.appendChild(badge);  
         
         const toggleBtn = document.createElement('button');  
         toggleBtn.className = `provider-toggle-btn ${providerKey === currentAPIType ? 'active' : ''}`;  
-        toggleBtn.textContent = providerKey === currentAPIType ? '当前使用' : '设为当前';  
+        toggleBtn.textContent = window.i18n.t(providerKey === currentAPIType ? 'cfgm.currently_used' : 'cfgm.set_as_current');  
         toggleBtn.disabled = providerKey === currentAPIType;
         toggleBtn.addEventListener('click', async () => {  
             await this.setCurrentAPIProvider(providerKey);  
@@ -1762,7 +1773,7 @@ class AIWriteXConfigManager {
         row1.className = 'form-row';  
         
         const keyNameGroup = this.createFormGroup(  
-            'KEY名称',  
+            window.i18n.t('cfgm.key_name'),  
             'text',  
             `api-${providerKey}-key-name`,  
             providerData.key || '',  
@@ -1785,7 +1796,7 @@ class AIWriteXConfigManager {
         
         /*
         const keyNameGroup = this.createFormGroup(    
-            'KEY名称',    
+            window.i18n.t('cfgm.key_name'),    
             'text',    
             `api-${providerKey}-key-name`,    
             providerData.key || '',    
@@ -1851,7 +1862,7 @@ class AIWriteXConfigManager {
         modelSelectGroup.className = 'form-group form-group-half';  
         
         const modelSelectLabel = document.createElement('label');  
-        modelSelectLabel.textContent = '模型';  
+        modelSelectLabel.textContent = window.i18n.t('cfgm.model');  
         const modelRequiredSpan = document.createElement('span');  
         modelRequiredSpan.className = 'required';  
         modelRequiredSpan.textContent = ' *';  
@@ -1859,7 +1870,7 @@ class AIWriteXConfigManager {
         
         const modelSelect = this.createEditableSelect(  
             providerKey,  
-            '模型',  
+            window.i18n.t('cfgm.model'),  
             providerData.model || [],  
             providerData.model_index || 0  
         );  
@@ -1893,7 +1904,7 @@ class AIWriteXConfigManager {
         display.className = 'select-display';  
         // 如果选中的是空字符串或索引超出有效范围,显示"-- 点击添加 --"  
         const selectedItem = validItems[selectedIndex];  
-        display.textContent = selectedItem || '-- 点击添加 --';  
+        display.textContent = selectedItem || window.i18n.t('cfgm.click_to_add');  
         
         // 下拉选项容器  
         const dropdown = document.createElement('div');  
@@ -1906,7 +1917,7 @@ class AIWriteXConfigManager {
             
             const addOption = document.createElement('div');  
             addOption.className = 'select-option select-option-add';  
-            addOption.textContent = '-- 点击添加 --';  
+            addOption.textContent = window.i18n.t('cfgm.click_to_add');  
             addOption.addEventListener('click', (e) => {  
                 e.stopPropagation();   
                 showAddInput();  
@@ -1955,7 +1966,7 @@ class AIWriteXConfigManager {
             const input = document.createElement('input');  
             input.type = 'text';  
             input.className = 'select-input';  
-            input.placeholder = `输入新的${type}`;  
+            input.placeholder = window.i18n.t('cfgm.enter_new', { type: type });  
             
             // 回车添加  
             input.addEventListener('keydown', async (e) => {  
@@ -2035,11 +2046,11 @@ class AIWriteXConfigManager {
         // 删除选项  
         const deleteItem = document.createElement('div');  
         deleteItem.className = 'context-menu-item';  
-        deleteItem.textContent = '删除';  
+        deleteItem.textContent = window.i18n.t('common.delete');  
         deleteItem.addEventListener('click', async () => {  
             // 使用自定义确认弹窗而非系统confirm  
             window.dialogManager.showConfirm(  
-                `确定删除这个${type}吗?`,  
+                window.i18n.t('cfgm.confirm_delete_item', { type: type }),  
                 async () => {  
                     if (type === 'API KEY') {  
                         await this.deleteAPIKey(providerKey, index);  
@@ -2214,7 +2225,7 @@ class AIWriteXConfigManager {
         this.populateAPIUI();    
         
         window.app?.showNotification(    
-            `已切换到 ${providerKey === 'SiliconFlow' ? '硅基流动' : providerKey}`,    
+            window.i18n.t('cfgm.switched_to', { name: providerKey === 'SiliconFlow' ? window.i18n.t('cfgm.siliconflow') : providerKey }),    
             'success'    
         );    
     }  
@@ -2228,12 +2239,12 @@ class AIWriteXConfigManager {
             const saveBtn = document.getElementById('save-api-config');    
             if (saveBtn) {    
                 saveBtn.classList.remove('has-changes');    
-                saveBtn.innerHTML = '保存配置';    
+                saveBtn.innerHTML = window.i18n.t('cfgm.save_config');    
             }    
         }    
         
         window.app?.showNotification(    
-            success ? 'API配置已保存' : '保存API配置失败',    
+            success ? window.i18n.t('cfgm.api_saved') : window.i18n.t('cfgm.api_save_failed'),    
             success ? 'success' : 'error'    
         );    
     }  
@@ -2242,11 +2253,11 @@ class AIWriteXConfigManager {
     async resetAPIConfig() {  
         // 使用自定义确认弹窗  
         window.dialogManager.showConfirm(  
-            '确定要恢复默认API配置吗？这将清除所有自定义设置。',  
+            window.i18n.t('cfgm.confirm_restore_api'),  
             async () => {  
                 try {  
                     const response = await fetch(`${this.apiEndpoint}/default`);  
-                    if (!response.ok) throw new Error('获取默认配置失败');  
+                    if (!response.ok) throw new Error(window.i18n.t('cfgm.get_defaults_failed'));  
                     
                     const result = await response.json();  
                     const defaultAPI = result.data.api;  
@@ -2257,9 +2268,9 @@ class AIWriteXConfigManager {
                     // 刷新UI  
                     this.populateAPIUI();  
                     
-                    window.app?.showNotification('已恢复默认API配置', 'success');  
+                    window.app?.showNotification(window.i18n.t('cfgm.api_defaults_restored'), 'success');  
                 } catch (error) {  
-                    window.app?.showNotification('恢复默认配置失败', 'error');  
+                    window.app?.showNotification(window.i18n.t('cfgm.restore_defaults_failed'), 'error');  
                 }  
             }  
         );  
@@ -2353,7 +2364,7 @@ class AIWriteXConfigManager {
             });      
                 
             if (!response.ok) {      
-                throw new Error('保存失败');      
+                throw new Error(window.i18n.t('cfgm.save_failed_plain'));      
             }      
                 
             return true;      
@@ -2453,7 +2464,7 @@ class AIWriteXConfigManager {
         // 添加"随机分类"选项  
         const randomOption = document.createElement('option');  
         randomOption.value = '';  
-        randomOption.textContent = '随机分类';  
+        randomOption.textContent = window.i18n.t('cw.random_category');  
         templateCategorySelect.appendChild(randomOption);  
         
         // 添加分类选项  
@@ -2468,7 +2479,7 @@ class AIWriteXConfigManager {
     // 加载指定分类的模板列表  
     async loadTemplatesByCategory(category) {  
         try {  
-            if (!category || category === '随机分类') {  
+            if (!category || category === window.i18n.t('cw.random_category')) {  
                 return [];  
             }  
             
@@ -2496,8 +2507,8 @@ class AIWriteXConfigManager {
         
         // 定义提供商列表(固定两个:picsum和ali)  
         const providers = [  
-            { key: 'picsum', display: 'Picsum(随机)' },  
-            { key: 'ali', display: '阿里' }  
+            { key: 'picsum', display: window.i18n.t('cfgm.picsum_random') },  
+            { key: 'ali', display: window.i18n.t('cfgm.ali') }  
         ];  
         
         // 生成提供商卡片  
@@ -2536,14 +2547,14 @@ class AIWriteXConfigManager {
         
         const badge = document.createElement('span');  
         badge.className = `provider-badge ${providerKey === currentImgAPIType ? 'active' : 'inactive'}`;  
-        badge.textContent = providerKey === currentImgAPIType ? '使用中' : '未使用';  
+        badge.textContent = window.i18n.t(providerKey === currentImgAPIType ? 'cfgm.in_use' : 'cfgm.not_in_use');  
         
         titleGroup.appendChild(name);  
         titleGroup.appendChild(badge);  
         
         const toggleBtn = document.createElement('button');  
         toggleBtn.className = `provider-toggle-btn ${providerKey === currentImgAPIType ? 'active' : ''}`;  
-        toggleBtn.textContent = providerKey === currentImgAPIType ? '当前使用' : '设为当前';  
+        toggleBtn.textContent = window.i18n.t(providerKey === currentImgAPIType ? 'cfgm.currently_used' : 'cfgm.set_as_current');  
         toggleBtn.disabled = providerKey === currentImgAPIType;  
         toggleBtn.addEventListener('click', async () => {  
             await this.setCurrentImgAPIProvider(providerKey);  
@@ -2562,18 +2573,18 @@ class AIWriteXConfigManager {
             'text',  
             `img-api-${providerKey}-api-key`,  
             providerData.api_key || '',  
-            providerKey === 'picsum'?"随机图片无需API KEY" : "请输入API KEY",  
+            providerKey === 'picsum' ? window.i18n.t('cfgm.no_key_needed') : window.i18n.t('cfgm.enter_api_key'),  
             false  
         );  
         apiKeyGroup.classList.add('form-group-half');  
         
         // 模型字段  
         const modelGroup = this.createFormGroup(  
-            '模型',  
+            window.i18n.t('cfgm.model'),  
             'text',  
             `img-api-${providerKey}-model`,  
             providerData.model || '',  
-            providerKey === 'picsum'?"随机图片无需模型" : "请输入模型名称",   
+            providerKey === 'picsum' ? window.i18n.t('cfgm.no_model_needed') : window.i18n.t('cfgm.enter_model_name'),   
             false  
         );  
         modelGroup.classList.add('form-group-half');  
@@ -2619,7 +2630,7 @@ class AIWriteXConfigManager {
         this.populateImgAPIUI();  
         
         window.app?.showNotification(  
-            `已切换到${providerKey === 'picsum' ? 'Picsum(随机)' : '阿里'}`,  
+            window.i18n.t('cfgm.switched_to_plain', { name: window.i18n.t(providerKey === 'picsum' ? 'cfgm.picsum_random' : 'cfgm.ali') }),  
             'success'  
         );  
     }  
@@ -2637,7 +2648,7 @@ class AIWriteXConfigManager {
         this.populateImgAPIUI();  
         
         window.app?.showNotification(  
-            `已切换到${providerKey === 'picsum' ? 'Picsum(随机)' : '阿里'}`,  
+            window.i18n.t('cfgm.switched_to_plain', { name: window.i18n.t(providerKey === 'picsum' ? 'cfgm.picsum_random' : 'cfgm.ali') }),  
             'success'  
         );  
     }  
@@ -2671,7 +2682,7 @@ class AIWriteXConfigManager {
         
         // 验证:如果选择阿里,必须填写API KEY  
         if (imgApiConfig.api_type === 'ali' && !imgApiConfig.ali.api_key.trim()) {  
-            window.app?.showNotification('阿里API需要配置API KEY', 'error');  
+            window.app?.showNotification(window.i18n.t('cfgm.ali_needs_key'), 'error');  
             return;  
         }  
         
@@ -2686,12 +2697,12 @@ class AIWriteXConfigManager {
             const saveBtn = document.getElementById('save-img-api-config');  
             if (saveBtn) {  
                 saveBtn.classList.remove('has-changes');  
-                saveBtn.innerHTML = '保存设置';  
+                saveBtn.innerHTML = window.i18n.t('common.save');  
             }  
         }  
         
         window.app?.showNotification(  
-            success ? '图片API配置已保存' : '保存图片API配置失败',  
+            success ? window.i18n.t('cfgm.imgapi_saved') : window.i18n.t('cfgm.imgapi_save_failed'),  
             success ? 'success' : 'error'  
         );  
     }  
@@ -2699,11 +2710,11 @@ class AIWriteXConfigManager {
     // 恢复默认图片API配置  
     async resetImgAPIConfig() {  
         window.dialogManager.showConfirm(  
-            '确定要恢复默认图片API配置吗？这将清除所有自定义设置。',  
+            window.i18n.t('cfgm.confirm_restore_imgapi'),  
             async () => {  
                 try {  
                     const response = await fetch(`${this.apiEndpoint}/default`);  
-                    if (!response.ok) throw new Error('获取默认配置失败');  
+                    if (!response.ok) throw new Error(window.i18n.t('cfgm.get_defaults_failed'));  
                     
                     const result = await response.json();  
                     const defaultImgAPI = result.data.img_api;  
@@ -2711,9 +2722,9 @@ class AIWriteXConfigManager {
                     await this.updateConfig({ img_api: defaultImgAPI });  
                     this.populateImgAPIUI();  
                     
-                    window.app?.showNotification('已恢复默认图片API配置', 'success');  
+                    window.app?.showNotification(window.i18n.t('cfgm.imgapi_defaults_restored'), 'success');  
                 } catch (error) {  
-                    window.app?.showNotification('恢复默认配置失败', 'error');  
+                    window.app?.showNotification(window.i18n.t('cfgm.restore_defaults_failed'), 'error');  
                 }  
             }  
         );  
@@ -2823,14 +2834,14 @@ class AIWriteXConfigManager {
         
         const badge = document.createElement('span');  
         badge.className = `provider-badge ${providerKey === currentProvider ? 'active' : 'inactive'}`;  
-        badge.textContent = providerKey === currentProvider ? '使用中' : '未使用';  
+        badge.textContent = window.i18n.t(providerKey === currentProvider ? 'cfgm.in_use' : 'cfgm.not_in_use');  
         
         titleGroup.appendChild(name);  
         titleGroup.appendChild(badge);  
         
         const toggleBtn = document.createElement('button');  
         toggleBtn.className = `provider-toggle-btn ${providerKey === currentProvider ? 'active' : ''}`;  
-        toggleBtn.textContent = providerKey === currentProvider ? '当前使用' : '设为当前';  
+        toggleBtn.textContent = window.i18n.t(providerKey === currentProvider ? 'cfgm.currently_used' : 'cfgm.set_as_current');  
         toggleBtn.disabled = providerKey === currentProvider;  
         toggleBtn.addEventListener('click', async () => {  
             await this.setCurrentAIForgeLLMProvider(providerKey);  
@@ -2849,7 +2860,7 @@ class AIWriteXConfigManager {
         
         // 类型(只读)  
         const typeGroup = this.createFormGroup(  
-            '类型',  
+            window.i18n.t('cfgm.type'),  
             'text',  
             `aiforge-${providerKey}-type`,  
             providerData.type || '',  
@@ -2867,11 +2878,11 @@ class AIWriteXConfigManager {
         
         // 模型  
         const modelGroup = this.createFormGroup(  
-            '模型',  
+            window.i18n.t('cfgm.model'),  
             'text',  
             `aiforge-${providerKey}-model`,  
             providerData.model || '',  
-            '使用的具体模型名称',  
+            window.i18n.t('cfgm.model_name_help'),  
             true  
         );  
         modelGroup.classList.add('form-group-third');  
@@ -2882,7 +2893,7 @@ class AIWriteXConfigManager {
             'text',  
             `aiforge-${providerKey}-api-key`,  
             providerData.api_key || '',  
-            '模型提供商的API KEY',  
+            window.i18n.t('cfgm.provider_api_key'),  
             true  
         );  
         apiKeyGroup.classList.add('form-group-third');  
@@ -2901,7 +2912,7 @@ class AIWriteXConfigManager {
             'text',  
             `aiforge-${providerKey}-base-url`,  
             providerData.base_url || '',  
-            'API的基础地址',  
+            window.i18n.t('cfgm.api_base_help'),  
             true,
             true
         );  
@@ -2909,21 +2920,21 @@ class AIWriteXConfigManager {
         
         // 超时时间  
         const timeoutGroup = this.createFormGroup(  
-            '超时时间(秒)',  
+            window.i18n.t('cfgm.timeout'),  
             'number',  
             `aiforge-${providerKey}-timeout`,  
             providerData.timeout || 30,  
-            'API请求的超时时间'  
+            window.i18n.t('cfgm.timeout_help')  
         );  
         timeoutGroup.classList.add('form-group-third');  
         
         // 最大Tokens  
         const maxTokensGroup = this.createFormGroup(  
-            '最大Tokens',  
+            window.i18n.t('cfgm.max_tokens'),  
             'number',  
             `aiforge-${providerKey}-max-tokens`,  
             providerData.max_tokens || 8192,  
-            '控制生成内容的长度'  
+            window.i18n.t('cfgm.max_tokens_help')  
         );  
         maxTokensGroup.classList.add('form-group-third');  
         
@@ -2955,7 +2966,7 @@ class AIWriteXConfigManager {
         this.populateAIForgeLLMUI();  
         
         window.app?.showNotification(  
-            `已切换到${providerKey}`,  
+            window.i18n.t('cfgm.switched_to_plain', { name: providerKey }),  
             'success'  
         );  
     }
@@ -3151,7 +3162,7 @@ class AIWriteXConfigManager {
             const cards = document.querySelectorAll('.dimension-group-card');  
             cards.forEach(card => {  
                 const cardName = card.querySelector('.dimension-group-name')?.textContent;  
-                if (cardName === groupData.name) {  
+                if (cardName === window.i18n.t(groupData.nameKey)) {  
                     const badge = card.querySelector('.dimension-count-badge');  
                     if (badge) {  
                         badge.textContent = `${enabledCount}/${groupData.dimensions.length}`;  
@@ -3203,7 +3214,7 @@ class AIWriteXConfigManager {
         
         const name = document.createElement('div');  
         name.className = 'dimension-group-name';  
-        name.textContent = groupData.name;  
+        name.textContent = window.i18n.t(groupData.nameKey);  
         
         // 统计已启用维度数量  
         const enabledCount = groupData.dimensions.filter(dim =>   
@@ -3311,7 +3322,11 @@ class AIWriteXConfigManager {
         // ========== 维度名称标签 ==========  
         const label = document.createElement('label');  
         label.className = 'dimension-name-label';  
-        label.textContent = dimensionData.name || dimensionKey;  
+        // 维度名称与选项文案走界面词条层:config.yaml 中的 name/value/description
+        // 仍为中文并原样进入 AI 提示词,此处只改变显示,不改变配置值
+        label.textContent = window.i18n.has(`dim.${dimensionKey}.name`)
+            ? window.i18n.t(`dim.${dimensionKey}.name`)
+            : (dimensionData.name || dimensionKey);  
         label.setAttribute('for', `dimension-${dimensionKey}-select`);  
         
         // ========== 预设选项下拉框 ==========  
@@ -3323,7 +3338,7 @@ class AIWriteXConfigManager {
         // 添加"自动选择"选项  
         const autoOption = document.createElement('option');  
         autoOption.value = '';  
-        autoOption.textContent = '自动选择';  
+        autoOption.textContent = window.i18n.t('cfgm.auto_select');  
         select.appendChild(autoOption);  
         
         // 添加预设选项  
@@ -3331,14 +3346,17 @@ class AIWriteXConfigManager {
         presetOptions.forEach(option => {  
             const opt = document.createElement('option');  
             opt.value = option.name;  
-            opt.textContent = `${option.value} (${option.description})`;  
+            const optionKey = `dim.${dimensionKey}.${option.name}`;
+            opt.textContent = window.i18n.has(optionKey)
+                ? window.i18n.t(optionKey)
+                : `${option.value} (${option.description})`;  
             select.appendChild(opt);  
         });  
         
         // 添加"自定义"选项  
         const customOption = document.createElement('option');  
         customOption.value = 'custom';  
-        customOption.textContent = '自定义';  
+        customOption.textContent = window.i18n.t('cfgm.custom');  
         select.appendChild(customOption);  
         
         // 设置当前选中值  
@@ -3380,7 +3398,7 @@ class AIWriteXConfigManager {
         customInput.type = 'text';  
         customInput.id = `dimension-${dimensionKey}-custom`;  
         customInput.className = 'dimension-custom-input';  
-        customInput.placeholder = '输入自定义内容...';  
+        customInput.placeholder = window.i18n.t('cfgm.custom_placeholder');  
         customInput.value = dimensionData.custom_input || '';  
         
         customInput.disabled = !globalEnabled || !isEnabled || select.value !== 'custom';  
@@ -3466,12 +3484,12 @@ class AIWriteXConfigManager {
             const saveBtn = document.getElementById('save-image-design-config');  
             if (saveBtn) {  
                 saveBtn.classList.remove('has-changes');  
-                saveBtn.innerHTML = '保存设置';  
+                saveBtn.innerHTML = window.i18n.t('common.save');  
             }  
         }  
         
         window.app?.showNotification(  
-            success ? '页面设计已保存' : '保存配置失败',  
+            success ? window.i18n.t('cfgm.imgdes_saved2') : window.i18n.t('cfgm.save_config_failed'),  
             success ? 'success' : 'error'  
         );  
     }
@@ -3517,7 +3535,7 @@ class AIWriteXConfigManager {
                 const saveBtn = document.getElementById(saveBtnId);  
                 if (saveBtn && !saveBtn.classList.contains('has-changes')) {  
                     saveBtn.classList.add('has-changes');  
-                    saveBtn.innerHTML = `保存设置 <span style="color: var(--warning-color);">(有未保存更改)</span>`;  
+                    saveBtn.innerHTML = window.i18n.t('common.save_with_changes');  
                 }  
             }  
                 
@@ -3551,7 +3569,7 @@ class AIWriteXConfigManager {
         try {  
             const response = await fetch(`${this.apiEndpoint}/default`);  
             if (!response.ok) {  
-                throw new Error('获取默认配置失败');  
+                throw new Error(window.i18n.t('cfgm.get_defaults_failed'));  
             }  
               
             const result = await response.json();  

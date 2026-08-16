@@ -1,44 +1,51 @@
-<div class="config-panel" id="config-ui">  
-    <div class="config-header">  
-        <h2>界面设置</h2>  
-        <p class="config-description">设置应用界面的外观和行为</p>  
-    </div>  
-      
-    <div class="config-form">  
-        <div class="config-section">  
-            <h3 class="section-title">外观设置</h3>  
-            <div class="form-grid">  
-                <div class="form-group">  
-                    <label for="theme-selector">主题模式</label>  
-                    <select id="theme-selector" name="theme" class="form-control">  
-                        <option value="light">亮色主题</option>  
-                        <option value="dark">暗色主题</option>  
-                    </select>  
-                    <p class="form-help">选择界面的颜色主题</p>  
-                </div>  
-                  
-                <div class="form-group">  
-                    <label for="window-mode-selector">窗口模式</label>  
-                    <select id="window-mode-selector" name="windowMode" class="form-control">  
-                        <option value="STANDARD">标准模式</option>  
-                        <option value="MAXIMIZED">最大化模式</option>  
-                    </select>  
-                    <p class="form-help">选择窗口显示模式</p>  
+<div class="config-panel" id="config-ui">
+    <div class="config-header">
+        <h2 data-i18n="config.ui.heading">界面设置</h2>
+        <p class="config-description" data-i18n="config.ui.description">设置应用界面的外观和行为</p>
+    </div>
+
+    <div class="config-form">
+        <div class="config-section">
+            <h3 class="section-title" data-i18n="config.ui.appearance">外观设置</h3>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="locale-selector" data-i18n="config.ui.language">界面语言</label>
+                    <!-- 选项由 locale-manager.js 依据可用语言包动态填充 -->
+                    <select id="locale-selector" name="locale" class="form-control"></select>
+                    <p class="form-help" data-i18n="config.ui.language_help">选择应用界面的显示语言,切换后页面将重新加载</p>
                 </div>
-                <div class="form-group">    
-                    <label for="design-theme-selector">网页设计器主题</label>    
-                    <select id="design-theme-selector" name="designTheme" class="form-control">    
-                        <option value="follow-system">跟随系统</option>    
-                        <option value="default">默认主题</option>    
-                    </select>    
-                    <p class="form-help">选择页面设计器的主题风格</p>    
-                </div>   
-            </div>  
-        </div>  
-          
-        <div class="config-actions">  
-            <button type="button" class="btn btn-primary" id="save-ui-config">保存设置</button>  
-            <button type="button" class="btn btn-secondary" id="reset-ui-config">恢复默认</button>  
-        </div>  
-    </div>  
+
+                <div class="form-group">
+                    <label for="theme-selector" data-i18n="config.ui.theme">主题模式</label>
+                    <select id="theme-selector" name="theme" class="form-control">
+                        <option value="light" data-i18n="config.ui.theme_light">亮色主题</option>
+                        <option value="dark" data-i18n="config.ui.theme_dark">暗色主题</option>
+                    </select>
+                    <p class="form-help" data-i18n="config.ui.theme_help">选择界面的颜色主题</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="window-mode-selector" data-i18n="config.ui.window_mode">窗口模式</label>
+                    <select id="window-mode-selector" name="windowMode" class="form-control">
+                        <option value="STANDARD" data-i18n="config.ui.window_standard">标准模式</option>
+                        <option value="MAXIMIZED" data-i18n="config.ui.window_maximized">最大化模式</option>
+                    </select>
+                    <p class="form-help" data-i18n="config.ui.window_mode_help">选择窗口显示模式</p>
+                </div>
+                <div class="form-group">
+                    <label for="design-theme-selector" data-i18n="config.ui.design_theme">网页设计器主题</label>
+                    <select id="design-theme-selector" name="designTheme" class="form-control">
+                        <option value="follow-system" data-i18n="config.ui.design_theme_follow">跟随系统</option>
+                        <option value="default" data-i18n="config.ui.design_theme_default">默认主题</option>
+                    </select>
+                    <p class="form-help" data-i18n="config.ui.design_theme_help">选择页面设计器的主题风格</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-actions">
+            <button type="button" class="btn btn-primary" id="save-ui-config" data-i18n="common.save">保存设置</button>
+            <button type="button" class="btn btn-secondary" id="reset-ui-config" data-i18n="common.restore_default">恢复默认</button>
+        </div>
+    </div>
 </div>

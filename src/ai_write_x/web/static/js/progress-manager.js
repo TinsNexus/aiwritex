@@ -4,63 +4,63 @@ class BottomProgressManager {
         this.stages = {    
             init: {    
                 id: 'init',    
-                name: '正在初始化',    
+                nameKey: 'progress.init',    
                 icon: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',    
                 progress: 0,  
                 maxProgress: 5  
             },    
             search: {    
                 id: 'search',    
-                name: '正在搜索信息',    
+                nameKey: 'progress.search',    
                 icon: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>',    
                 progress: 5,  
                 maxProgress: 20  
             },    
             writing: {    
                 id: 'writing',    
-                name: 'AI正在创作',    
+                nameKey: 'progress.writing',    
                 icon: '<path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>',    
                 progress: 20,  
                 maxProgress: 35  
             },    
             creative: {    
                 id: 'creative',    
-                name: '正在创意变换',    
+                nameKey: 'progress.creative',    
                 icon: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',    
                 progress: 35,  
                 maxProgress: 45  
             },    
             template: {    
                 id: 'template',    
-                name: '正在应用模板',    
+                nameKey: 'progress.template',    
                 icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',    
                 progress: 45,  
                 maxProgress: 85  
             },    
             design: {  
                 id: 'design',    
-                name: '正在设计排版',    
+                nameKey: 'progress.design',    
                 icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>',    
                 progress: 45,    
                 maxProgress: 75    
             },    
             save: {    
                 id: 'save',    
-                name: '正在保存',    
+                nameKey: 'progress.saving',    
                 icon: '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/>',    
                 progress: 85,  
                 maxProgress: 87  
             },    
             publish: {    
                 id: 'publish',    
-                name: '正在发布',    
+                nameKey: 'progress.publishing',    
                 icon: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',    
                 progress: 87,  
                 maxProgress: 98  
             },    
             complete: {    
                 id: 'complete',    
-                name: '生成完成',    
+                nameKey: 'progress.done',    
                 icon: '<polyline points="20 6 9 17 4 12"/>',    
                 progress: 100,    
                 maxProgress: 100    
@@ -227,7 +227,7 @@ class BottomProgressManager {
         if (this.progressTextEl && this.currentStage) {  
             const stageConfig = this.stages[this.currentStage];  
             if (stageConfig) {  
-                this.progressTextEl.textContent = `${stageConfig.name} ${Math.round(this.currentProgress)}%`;  
+                this.progressTextEl.textContent = `${window.i18n.t(stageConfig.nameKey)} ${Math.round(this.currentProgress)}%`;  
             }  
         }  
     }    
@@ -244,7 +244,7 @@ class BottomProgressManager {
         }  
   
         if (this.progressTextEl) {  
-            this.progressTextEl.textContent = '生成失败';  
+            this.progressTextEl.textContent = window.i18n.t('progress.failed');  
         }  
     }    
   
@@ -265,7 +265,7 @@ class BottomProgressManager {
                 this.renderProgress();  
   
                 if (this.progressTextEl) {  
-                    this.progressTextEl.textContent = '生成完成 100%';  
+                    this.progressTextEl.textContent = window.i18n.t('progress.done_100');  
                 }  
             }    
         };    
@@ -340,7 +340,7 @@ class BottomProgressManager {
   
         // 恢复日志按钮默认文字  
         if (this.progressTextEl) {  
-            this.progressTextEl.textContent = '日志';  
+            this.progressTextEl.textContent = window.i18n.t('progress.log');  
         }  
             
         if (this.progressEl) {    

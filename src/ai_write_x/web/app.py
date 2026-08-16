@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import time
+import json
 import asyncio
 from pathlib import Path
 from contextlib import asynccontextmanager
@@ -22,6 +23,9 @@ from src.ai_write_x.utils import utils
 
 # 导入状态管理
 from .state import app_state
+
+# 导入国际化支持
+from .i18n import get_locale_bootstrap, get_saved_locale
 
 # 导入API路由
 from .api.config import router as config_router
@@ -101,8 +105,26 @@ app.include_router(generate_router)
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
     """返回主界面"""
+    # 同步注入语言包：index.html 无打包器、脚本按顺序加载，
+    # 异步取词条会与各管理器的 DOMContentLoaded 初始化产生竞态
+    locale_bootstrap = get_locale_bootstrap(get_saved_locale())
     return templates.TemplateResponse(
-        "index.html", {"request": request, "version": get_version_with_prefix()}  # 传递版本号
+        "index.html",
+        {
+            "request": request,
+            "version": get_version_with_prefix(),  # 传递版本号
+            # 转义 < > &：json.dumps 不会转义 "</script>"，直接注入 <script> 块时
+            # 词条内容可能提前闭合脚本标签。转成 < 等价且对 JSON.parse 无影响。
+            "i18n_bootstrap": (
+                json.dumps(locale_bootstrap, ensure_ascii=False)
+                .replace("<", "\\u003c")
+                .replace(">", "\\u003e")
+                .replace("&", "\\u0026")
+            ),
+            "html_lang": locale_bootstrap["messages"].get(
+                "app.html_lang", locale_bootstrap["fallback"].get("app.html_lang", "zh-CN")
+            ),
+        },
     )
 
 

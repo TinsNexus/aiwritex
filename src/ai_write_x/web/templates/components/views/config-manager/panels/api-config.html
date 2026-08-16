@@ -2,8 +2,8 @@
     <div class="config-header">  
         <div class="header-content">  
             <div>  
-                <h2>大模型API</h2>  
-                <p class="config-description">设置LLM提供商的API密钥和模型参数</p>  
+                <h2 data-i18n="api.heading">大模型API</h2>  
+                <p class="config-description" data-i18n="api.description">设置LLM提供商的API密钥和模型参数</p>  
             </div> 
         </div>  
     </div>  
@@ -22,11 +22,11 @@
                 <line x1="12" y1="8" x2="12.01" y2="8"/>  
             </svg>  
             <div class="notice-content">  
-                <strong>设置说明:</strong>  
+                <strong data-i18n="common.settings_note">设置说明:</strong>  
                 <ul>  
-                    <li>默认已提供较多模型,原则上只需要填写API KEY</li>  
-                    <li>只需要填写选中的API类型相应的参数</li>
-                    <li>修改设置仅当前运行有效，永久生效需保存设置</li>  
+                    <li data-i18n="api.note_1">默认已提供较多模型,原则上只需要填写API KEY</li>  
+                    <li data-i18n="api.note_2">只需要填写选中的API类型相应的参数</li>
+                    <li data-i18n="common.note_runtime_only">修改设置仅当前运行有效，永久生效需保存设置</li>  
                 </ul>  
             </div>  
         </div>  
@@ -34,10 +34,10 @@
       
     <div class="config-actions">  
         <button type="button" class="btn btn-primary" id="save-api-config">  
-            保存设置  
+            <span data-i18n="common.save">保存设置</span>  
         </button>  
         <button type="button" class="btn btn-secondary" id="reset-api-config">  
-            恢复默认  
+            <span data-i18n="common.restore_default">恢复默认</span>  
         </button>  
     </div>  
 </div>
