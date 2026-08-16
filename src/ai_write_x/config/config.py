@@ -1,5 +1,6 @@
 from typing import Any, Dict
 import os
+import re
 import yaml
 import threading
 import tomlkit
@@ -1751,18 +1752,58 @@ class Config:
             ]
 
     def __get_config_path(self, file_name="config.yaml"):
-        """获取配置文件路径并确保文件存在"""
+        """获取配置文件路径并确保文件存在
 
+        实际配置一律读写用户数据目录；源码树/打包资源中的同名文件只是默认模板，
+        仅在用户目录尚无该文件时复制过去（copy_file 遇到已存在的目标不会覆盖）。
+        这样开发模式下填入的密钥不会再写回被 Git 跟踪的文件。
+        """
         config_path = str(PathManager.get_config_path(file_name))
 
         if utils.get_is_release_ver():
-            # 发布模式：使用PathManager获取跨平台可写路径
-            # 将资源文件复制到配置目录下（保留原有逻辑）
-            res_config_path = utils.get_res_path(f"config/{file_name}")
-            if os.path.exists(res_config_path):
-                utils.copy_file(res_config_path, config_path)
+            # 发布模式：模板来自打包进来的资源目录
+            seed_path = utils.get_res_path(f"config/{file_name}")
+        else:
+            # 开发模式：模板就是源码树中的同名文件
+            seed_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
+
+        # 首次运行时把模板复制到用户目录；已存在则保留用户自己的配置
+        if os.path.exists(seed_path) and not os.path.exists(config_path):
+            utils.copy_file(seed_path, config_path)
+
+        if not utils.get_is_release_ver():
+            self.__warn_if_seed_has_secrets(seed_path)
 
         return config_path
+
+    @staticmethod
+    def __warn_if_seed_has_secrets(seed_path):
+        """提醒清理源码树中残留的密钥
+
+        本次改动之前，开发模式会把密钥直接写进源码树里被 Git 跟踪的配置文件。
+        路径修正只能防止今后再写入，已经落在工作区里的旧密钥仍需手动清除，
+        否则一次 `git commit -a` 依旧会泄露。
+        """
+        if not os.path.exists(seed_path):
+            return
+
+        try:
+            content = open(seed_path, "r", encoding="utf-8").read()
+        except OSError:
+            return
+
+        # 只看是否存在"非空的密钥字段"，不打印任何取值
+        has_secret = re.search(
+            r"^\s*-?\s*(api_key|appsecret|app_secret)\s*[:=]\s*(?!\s*(\[\s*\]|\"\"|''|$))\S",
+            content,
+            re.MULTILINE,
+        )
+        if has_secret:
+            log.print_log(
+                f"检测到源码目录下的配置模板 {os.path.basename(seed_path)} 中似乎残留密钥。"
+                "配置现已改存到用户数据目录，请清空该模板文件中的密钥后再提交，避免推送到公开仓库。",
+                "warning",
+            )
 
     def get_sendall_by_appid(self, target_appid):
         for cred in self.config["wechat"]["credentials"]:
