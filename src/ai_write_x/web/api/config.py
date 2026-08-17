@@ -16,7 +16,7 @@ from src.ai_write_x.utils.path_manager import PathManager
 from src.ai_write_x.adapters.platform_adapters import PlatformType
 
 
-from src.ai_write_x.web.i18n import translate
+from src.ai_write_x.web.i18n import DEFAULT_UI_LOCALE, translate
 from src.ai_write_x.web.safe_path import safe_name
 from src.ai_write_x.web.secret_mask import mask_config, unmask_config
 
@@ -144,7 +144,7 @@ async def get_ui_config():
     config_file = get_ui_config_path()
     if config_file.exists():
         return json.loads(config_file.read_text(encoding="utf-8"))
-    return {"theme": "light", "windowMode": "STANDARD", "locale": "zh_CN"}
+    return {"theme": "light", "windowMode": "STANDARD", "locale": DEFAULT_UI_LOCALE}
 
 
 @router.post("/ui-config")

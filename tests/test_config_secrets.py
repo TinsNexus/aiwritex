@@ -39,9 +39,12 @@ def main():
 
     before = {SEED_YAML: _sha(SEED_YAML), SEED_TOML: _sha(SEED_TOML)}
 
-    # 把用户数据目录指向临时目录，避免污染真实环境
     from src.ai_write_x.utils.path_manager import PathManager
 
+    # 先记下真实（未打桩）的运行时配置目录，后面用来做 .gitignore 检查
+    real_config_dir = PathManager.get_config_dir()
+
+    # 再把用户数据目录指向临时目录，避免污染真实环境
     tmp = Path(tempfile.mkdtemp())
     PathManager.get_app_data_dir = staticmethod(lambda: tmp)
 
@@ -107,6 +110,28 @@ def main():
         check("告警内容不回显密钥值", all(FAKE_KEY not in m for m in messages))
     finally:
         config_module.log.print_log = original_log
+
+    # —— 真实（未打桩）路径下：运行时配置目录绝不能被 Git 提交 ——
+    # 开发模式 get_app_data_dir() 返回项目根目录，配置会落在 <repo>/config/，
+    # 里面是真实密钥。若它既未被跟踪又不在 .gitignore 中，一次 git add . 就会泄露。
+    import subprocess
+
+    try:
+        repo_rel = real_config_dir.resolve().relative_to(REPO_ROOT.resolve())
+    except ValueError:
+        repo_rel = None  # 在仓库之外，天然安全
+
+    if repo_rel is None:
+        check("运行时配置目录位于仓库之外", True)
+    else:
+        probe = f"{repo_rel.as_posix()}/config.yaml"
+        ignored = (
+            subprocess.run(
+                ["git", "check-ignore", "-q", probe], cwd=REPO_ROOT
+            ).returncode
+            == 0
+        )
+        check(f"运行时配置目录 {repo_rel}/ 已被 .gitignore 排除", ignored)
 
     if failures:
         print("\nFAILED:")

@@ -10,8 +10,16 @@ import json
 from functools import lru_cache
 from pathlib import Path
 
-# 回退语言：任何语言缺失的词条都会回退到这里
-DEFAULT_LOCALE = "zh_CN"
+# 回退语言：词条最完整的基准语言，任何语言缺失的条目都回退到这里。
+# 它与"默认界面语言"是两件事，不要混用。
+FALLBACK_LOCALE = "zh_CN"
+
+# 默认界面语言：用户尚未做过选择时使用（首次启动、ui_config.json 里没有 locale）。
+# 用户在界面上选过之后，一律以 ui_config.json 中的值为准。
+DEFAULT_UI_LOCALE = "vi"
+
+# 兼容旧引用
+DEFAULT_LOCALE = FALLBACK_LOCALE
 
 # 语言显示名称（用于界面上的语言选择器，各语言均以本族语书写）
 LOCALE_DISPLAY_NAMES = {
@@ -33,14 +41,14 @@ def get_available_locales() -> list:
     """扫描词条目录，返回可用语言代码列表"""
     locales_dir = get_locales_dir()
     if not locales_dir.exists():
-        return [DEFAULT_LOCALE]
+        return [FALLBACK_LOCALE]
 
     found = sorted(p.stem for p in locales_dir.glob("*.json"))
-    if DEFAULT_LOCALE in found:
-        # 默认语言排在最前
-        found.remove(DEFAULT_LOCALE)
-        found.insert(0, DEFAULT_LOCALE)
-    return found or [DEFAULT_LOCALE]
+    if DEFAULT_UI_LOCALE in found:
+        # 默认界面语言排在最前
+        found.remove(DEFAULT_UI_LOCALE)
+        found.insert(0, DEFAULT_UI_LOCALE)
+    return found or [FALLBACK_LOCALE]
 
 
 @lru_cache(maxsize=8)
@@ -58,13 +66,13 @@ def load_messages(locale: str) -> dict:
 def get_locale_bootstrap(locale: str) -> dict:
     """构造注入页面的 i18n 引导数据"""
     if locale not in get_available_locales():
-        locale = DEFAULT_LOCALE
+        locale = DEFAULT_UI_LOCALE
 
     return {
         "locale": locale,
         "messages": load_messages(locale),
         # 回退词条：默认语言，保证新增词条未翻译时界面不出现原始 key
-        "fallback": load_messages(DEFAULT_LOCALE) if locale != DEFAULT_LOCALE else {},
+        "fallback": load_messages(FALLBACK_LOCALE) if locale != FALLBACK_LOCALE else {},
         "available": [
             {"value": code, "label": LOCALE_DISPLAY_NAMES.get(code, code)}
             for code in get_available_locales()
@@ -83,7 +91,7 @@ def translate(key: str, locale: str = None, **params) -> str:
 
     text = load_messages(locale).get(key)
     if text is None:
-        text = load_messages(DEFAULT_LOCALE).get(key, key)
+        text = load_messages(FALLBACK_LOCALE).get(key, key)
 
     if params:
         for name, value in params.items():
@@ -97,9 +105,9 @@ def get_saved_locale() -> str:
 
     config_file = PathManager.get_config_dir() / "ui_config.json"
     if not config_file.exists():
-        return DEFAULT_LOCALE
+        return DEFAULT_UI_LOCALE
     try:
         ui_config = json.loads(config_file.read_text(encoding="utf-8"))
-        return ui_config.get("locale") or DEFAULT_LOCALE
+        return ui_config.get("locale") or DEFAULT_UI_LOCALE
     except (json.JSONDecodeError, OSError):
-        return DEFAULT_LOCALE
+        return DEFAULT_UI_LOCALE

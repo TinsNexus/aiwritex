@@ -26,3 +26,12 @@ AIWriteX.dmg
 .qoder
 license.dat
 build_secrets.json
+
+# 开发模式下 get_app_data_dir() 指向项目根目录，运行时配置会落在 <repo>/config/，
+# 其中包含真实的 API Key 与公众号 appsecret —— 绝不能提交。
+# （前导斜杠只锚定根目录，不影响被跟踪的 src/ai_write_x/config/ 模板）
+/config/
+
+# 本地虚拟环境
+.venv/
+venv/

@@ -134,7 +134,7 @@ async def read_root(request: Request):
                 .replace("&", "\\u0026")
             ),
             "html_lang": locale_bootstrap["messages"].get(
-                "app.html_lang", locale_bootstrap["fallback"].get("app.html_lang", "zh-CN")
+                "app.html_lang", locale_bootstrap["fallback"].get("app.html_lang", "vi")
             ),
         },
     )
