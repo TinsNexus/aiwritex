@@ -116,10 +116,14 @@ async def read_root(request: Request):
     # 同步注入语言包：index.html 无打包器、脚本按顺序加载，
     # 异步取词条会与各管理器的 DOMContentLoaded 初始化产生竞态
     locale_bootstrap = get_locale_bootstrap(get_saved_locale())
+    # 使用 Starlette 的新签名 TemplateResponse(request, name, context)：
+    # 旧签名在 Starlette 1.x 下会抛 TypeError（首页 500）。
+    # 新签名自 Starlette 0.29 起支持，本项目要求 fastapi>=0.117.1（starlette>=0.40），
+    # 因此可以安全切换。request 由 Starlette 自动注入上下文，无需再手动传。
     return templates.TemplateResponse(
+        request,
         "index.html",
         {
-            "request": request,
             "version": get_version_with_prefix(),  # 传递版本号
             # 转义 < > &：json.dumps 不会转义 "</script>"，直接注入 <script> 块时
             # 词条内容可能提前闭合脚本标签。转成 < 等价且对 JSON.parse 无影响。
