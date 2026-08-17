@@ -27,6 +27,9 @@ from .state import app_state
 # 导入国际化支持
 from .i18n import get_locale_bootstrap, get_saved_locale
 
+# 本地访问守卫（Host/Origin 校验）
+from .local_guard import LocalOriginGuard
+
 # 导入API路由
 from .api.config import router as config_router
 from .api.templates import router as templates_router
@@ -91,6 +94,11 @@ app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 app.mount("/images", StaticFiles(directory=PathManager.get_image_dir()), name="images")
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# 拒绝非本机来源的请求：挡住 DNS rebinding、跨站 CSRF，
+# 以及不受同源策略约束的跨站 WebSocket 连接。
+# 必须用纯 ASGI 中间件——BaseHTTPMiddleware 拦不到 websocket。
+app.add_middleware(LocalOriginGuard)
 
 # 模板引擎
 templates = Jinja2Templates(directory=str(templates_path))
