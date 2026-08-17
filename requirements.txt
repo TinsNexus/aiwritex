@@ -5,13 +5,13 @@ dashscope==1.22.1
 pydantic
 PyYAML==6.0.1
 Requests==2.32.3
-setuptools==65.5.0
+setuptools>=68  # 65.5.0 在 Python 3.12 下 pkg_resources 崩溃（pkgutil.ImpImporter 已移除）
 tomlkit==0.13.2
 aiforge-engine>=0.0.19
 rich
 python_dateutil==2.8.2
 markdown==3.8.2
-peewee>=3.14.0
+peewee>=3.14.0,<4  # 4.x 移除了 aiforge 依赖的 playhouse.sqlite_ext.SqliteExtDatabase
 pystray>=0.19.5
 Pillow>=10.4.0
 pywebview>=6.0

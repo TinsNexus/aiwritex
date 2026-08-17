@@ -79,19 +79,19 @@ du -sh "$OUT/AIWriteX.app"
 # 1) Python 3.12：pyproject 要求 >=3.10,<3.13。3.13 装不上 crewai。
 #      uv venv --python 3.12 .venv
 #
-# 2) peewee 必须锁 3.x：requirements.txt 写的是 peewee>=3.14.0，没有上限，
-#    会装到 4.x，而 aiforge 依赖 3.x 的 playhouse.sqlite_ext.SqliteExtDatabase，
-#    4.x 已移除该名字，导致 import 直接失败。
-#      uv pip install "peewee<4"
+#    依赖直接按 requirements.txt 装即可，无需再手工打补丁：
+#      uv pip install -r requirements.txt
+#      uv pip install nuitka
+#    （peewee 与 setuptools 两处约束此前是错的，已在 requirements.txt 中修正：
+#      peewee 需锁 <4——aiforge 依赖 3.x 的 playhouse.sqlite_ext.SqliteExtDatabase；
+#      setuptools 需 >=68——65.5.0 在 Python 3.12 下 pkg_resources 会崩。）
 #
-# 3) setuptools 必须升级：requirements.txt 锁的是 setuptools==65.5.0，
-#    它在 Python 3.12 下 import pkg_resources 会因 pkgutil.ImpImporter 被移除而崩，
-#    Nuitka 的 pkg-resources 插件初始化随之失败。
-#      uv pip install -U setuptools
+# 2) --static-libpython=no：Homebrew Python 不提供静态 libpython。
 #
-# 4) --static-libpython=no：Homebrew Python 不提供静态 libpython。
-#
-# 5) 不要加 --include-package=webview：会与 Nuitka 内置的 pywebview 插件
+# 3) 不要加 --include-package=webview：会与 Nuitka 内置的 pywebview 插件
 #    对 webview.platforms.android 的处理冲突，报 "Conflict between user and
 #    plugin decision"。该插件默认就是启用的。
+#
+# 4) 构建后需补建 crewai/utilities 空目录（脚本已自动处理），
+#    原因见上面"补建仅用于相对路径解析的空目录"一段。
 # ---------------------------------------------------------------------------
