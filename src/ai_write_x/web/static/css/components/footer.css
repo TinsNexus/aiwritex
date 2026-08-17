@@ -10,12 +10,29 @@
     overflow: hidden;  
 }  
   
-/* 左侧固定品牌信息 */  
-.footer-left {  
-    flex-shrink: 0;  
-    display: flex;  
-    align-items: center;  
-}  
+/* 左侧品牌信息 */
+.footer-left {
+    /* 原为 flex-shrink: 0：在越南语等较长文案下会占满整行，
+       把右侧跑马灯挤到 0 宽（实测 footer-left 620px / marquee 0px）。
+       改为可收缩，并给跑马灯留出最小空间。 */
+    flex-shrink: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* 版本号与版权不截断，只截断后面的推广链接 */
+.footer-brand {
+    flex-shrink: 0;
+}
+
+.footer-promo-link {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
   
 .footer-brand {  
     font-size: 13px;  
@@ -24,13 +41,13 @@
     white-space: nowrap;  
 }  
   
-/* 右侧走马灯区域 */  
-.footer-right {  
-    flex: 1;  
-    display: flex;  
-    justify-content: flex-end;  
-    min-width: 0;  
-}  
+/* 右侧走马灯区域 */
+.footer-right {
+    flex: 1 0 auto;          /* 不被左侧挤没 */
+    min-width: 240px;        /* 跑马灯的最小可读宽度 */
+    display: flex;
+    justify-content: flex-end;
+}
   
 .footer-marquee-container {  
     max-width: 500px;  

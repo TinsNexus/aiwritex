@@ -238,3 +238,38 @@
     font-size: 12px;  
     font-weight: 500;  
 }
+
+/* 多语言适配：副标题在越南语等语言下明显更长。
+   原先 .app-title 没有 min-width:0，flex 子项无法收缩，
+   副标题被压到 33px 宽并折成多行、撑破 24px 的标题栏。 */
+.app-title,
+.app-title-link {
+    min-width: 0;
+}
+
+.title-text-wrapper {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.app-subtitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+.title-main,
+.app-header .header-logo-container {
+    flex-shrink: 0;
+}
+
+/* 右侧状态区固定，不被标题挤压 */
+.app-status {
+    flex-shrink: 0;
+}
+
+/* 窄窗口下副标题让位给主标题与状态区 */
+@media (max-width: 1100px) {
+    .app-subtitle { display: none; }
+}

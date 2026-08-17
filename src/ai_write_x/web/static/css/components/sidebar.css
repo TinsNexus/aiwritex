@@ -109,3 +109,22 @@
     font-size: 12px;    
     margin-left: 4px;    
 }
+
+/* 多语言适配：标签长度随语言变化很大。
+   限制为单行 + 省略号，避免折行把文字挤出按钮；
+   模板里已带 title 属性/或由 i18n 填充，鼠标悬停仍可看到全称。 */
+.nav-link > span,
+.nav-sublink > span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+
+/* 图标与箭头不参与压缩，只压缩文字 */
+.nav-link > svg,
+.nav-icon,
+.nav-arrow,
+.config-required {
+    flex-shrink: 0;
+}
