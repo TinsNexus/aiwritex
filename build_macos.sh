@@ -54,8 +54,24 @@ echo "==> 开始编译（Nuitka standalone，耗时较长）"
   --nofollow-import-to=tests \
   main.py
 
-echo "==> 构建完成: $OUT/main.app 或 $OUT/AIWriteX.app"
-ls -d "$OUT"/*.app 2>/dev/null || true
+APP="$OUT/main.app"
+
+# Nuitka 把 crewai 的模块编译进了二进制，磁盘上不再有 crewai/utilities/ 目录；
+# 而 crewai/utilities/i18n.py 是用 "<自身目录>/../translations/en.json" 去读文件的。
+# POSIX 解析 a/b/../c 时要求 b 真实存在，否则 open() 直接 ENOENT，应用启动即崩。
+# 这里把这类"只用于路径拼接、本身无数据文件"的目录补回来。
+echo "==> 补建仅用于相对路径解析的空目录"
+for d in crewai/utilities; do
+  mkdir -p "$APP/Contents/MacOS/$d"
+  echo "    $d"
+done
+
+echo "==> 重命名为 AIWriteX.app"
+rm -rf "$OUT/AIWriteX.app"
+mv "$APP" "$OUT/AIWriteX.app"
+
+echo "==> 构建完成: $OUT/AIWriteX.app"
+du -sh "$OUT/AIWriteX.app"
 
 # ---------------------------------------------------------------------------
 # 环境注意事项（都是实际构建时踩到的）
