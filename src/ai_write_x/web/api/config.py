@@ -18,6 +18,7 @@ from src.ai_write_x.adapters.platform_adapters import PlatformType
 
 from src.ai_write_x.web.i18n import translate
 from src.ai_write_x.web.safe_path import safe_name
+from src.ai_write_x.web.secret_mask import mask_config, unmask_config
 
 
 router = APIRouter(prefix="/api/config", tags=["config"])
@@ -56,6 +57,10 @@ async def get_config():
             "page_design": config_dict.get("page_design"),
         }
 
+        # 密钥一律脱敏后再出站：界面只需要辨认，不需要明文
+        config_data, masked_aiforge = mask_config(config_data, config.aiforge_config)
+        config_data["aiforge_config"] = masked_aiforge
+
         return {"status": "success", "data": config_data}
 
     except Exception as e:
@@ -69,6 +74,10 @@ async def update_config_memory(request: ConfigUpdateRequest):
     try:
         config = Config.get_instance()
         config_data = request.config_data.get("config_data", request.config_data)
+
+        # 界面回传的是脱敏值，先还原成已存储的真实密钥，
+        # 否则一次保存就会把掩码字符串当成密钥写进配置
+        config_data = unmask_config(config_data, config.config, config.aiforge_config)
 
         # 深度合并配置到内存
         def deep_merge(target, source):
