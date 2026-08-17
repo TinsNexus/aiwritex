@@ -10,6 +10,7 @@ from src.ai_write_x.utils.path_manager import PathManager
 
 from src.ai_write_x.web.i18n import translate
 from src.ai_write_x.web.safe_path import resolve_within, safe_name
+from src.ai_write_x.web.local_guard import PREVIEW_CSP
 
 
 router = APIRouter(prefix="/api/templates", tags=["templates"])
@@ -214,7 +215,7 @@ async def preview_template(template_path: str):
 
     content = file_path.read_text(encoding="utf-8")
     return HTMLResponse(
-        content, headers={"Content-Security-Policy": "default-src 'self' 'unsafe-inline'"}
+        content, headers={"Content-Security-Policy": PREVIEW_CSP}
     )
 
 

@@ -5,7 +5,8 @@ __pycache__/
 logs/*.log
 make_exe/
 make_app/
-tools/
+# 只忽略仓库根目录下的 tools/（不加前导斜杠会连 src/ai_write_x/tools/ 一起忽略）
+/tools/
 image/*
 !image/preview/
 aiforge_work/

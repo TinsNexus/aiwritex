@@ -23,6 +23,23 @@ from urllib.parse import urlparse
 # 端口变化时也不该误伤本应用自身）
 ALLOWED_HOSTNAMES = frozenset({"127.0.0.1", "localhost", "::1"})
 
+# 预览接口（模板/文章）返回的是模板或 AI 生成的 HTML，用这套 CSP 约束它。
+# 关键是 default-src 'none' 且不放开 script-src —— 内容里的 <script> 无法执行。
+# 其余按模板实际需要放行：
+#   - 大量 style="" 内联样式，且有模板引用 Google Fonts 的样式表
+#   - 图片来自 picsum(https)、本地 /images(self) 与 data: URI
+#   - 全部 35 个内置模板中没有任何一个使用 <script>
+PREVIEW_CSP = (
+    "default-src 'none'; "
+    "img-src 'self' data: https: http:; "
+    "style-src 'unsafe-inline' https:; "
+    "font-src https: data:; "
+    "media-src 'self' https:; "
+    "frame-ancestors 'self'; "
+    "base-uri 'none'; "
+    "form-action 'none'"
+)
+
 
 def _hostname_from_host_header(value):
     """从 Host 头中取出主机名，兼容 ``[::1]:8000`` 这种写法"""

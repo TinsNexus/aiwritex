@@ -17,6 +17,7 @@ from src.ai_write_x.utils import utils
 
 from src.ai_write_x.web.i18n import translate
 from src.ai_write_x.web.safe_path import resolve_within
+from src.ai_write_x.web.local_guard import PREVIEW_CSP
 
 
 router = APIRouter(prefix="/api/articles", tags=["articles"])
@@ -101,7 +102,7 @@ async def preview_article(path: str):
 
     content = file_path.read_text(encoding="utf-8")
     return HTMLResponse(
-        content, headers={"Content-Security-Policy": "default-src 'self' 'unsafe-inline'"}
+        content, headers={"Content-Security-Policy": PREVIEW_CSP}
     )
 
 
