@@ -140,6 +140,14 @@ async def generate_content(request: GenerateRequest):
                 valid_urls = [url for url in urls if utils.is_valid_url(url)]
                 if len(valid_urls) != len(urls):
                     raise HTTPException(status_code=400, detail=translate("api.invalid_url"))
+
+                # 提前拒绝指向本机/内网的参考链接（SSRF），让用户当场看到原因；
+                # 抓取处另有一道校验，兜住来自配置或命令行的输入
+                if any(not utils.is_safe_external_url(url) for url in valid_urls):
+                    raise HTTPException(
+                        status_code=400, detail=translate("api.url_not_allowed")
+                    )
+
                 config_data["urls"] = valid_urls
 
             config_data["reference_ratio"] = float(request.reference.reference_ratio or 30) / 100

@@ -752,5 +752,6 @@
   "art.open_wechat_console": "Mở trang quản trị Official Account",
   "editor.monaco_not_loaded": "Chưa tải được Monaco Editor loader",
   "cw.invalid_url_detail": "Có URL không hợp lệ, vui lòng kiểm tra lại (đảm bảo dùng http:// hoặc https://)",
-  "api.url_scheme_not_allowed": "Chỉ cho phép mở liên kết http/https"
+  "api.url_scheme_not_allowed": "Chỉ cho phép mở liên kết http/https",
+  "api.url_not_allowed": "Liên kết tham khảo không được trỏ tới máy cục bộ hoặc mạng nội bộ"
 }

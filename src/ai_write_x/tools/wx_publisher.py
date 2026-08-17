@@ -196,6 +196,10 @@ class WeixinPublisher:
             resolved_path = resolve_image_path(image_url)
 
             if resolved_path.startswith(("http://", "https://")):
+                # 图片地址来自文章 HTML，可能被投毒指向内网，先做 SSRF 校验
+                if not utils.is_safe_external_url(resolved_path):
+                    log.print_log(f"已拒绝上传指向内网或非法地址的图片: {resolved_path}", "warning")
+                    return None, None, "图片地址不允许访问"
                 # 处理网络图片
                 image_response = requests.get(resolved_path, stream=True)
                 image_response.raise_for_status()

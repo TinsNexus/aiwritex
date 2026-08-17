@@ -1,5 +1,7 @@
 import re
 import os
+import ipaddress
+import socket
 import random
 import warnings
 from bs4 import BeautifulSoup
@@ -204,6 +206,12 @@ def download_and_save_image(image_url, local_image_folder):
         if not os.path.exists(local_image_folder):
             os.makedirs(local_image_folder)
 
+        # 图片地址来自 AI 生成的文章内容，可能被投毒指向内网，先做 SSRF 校验。
+        # 这里不打日志：log 模块反过来会 import utils，引入会造成循环导入；
+        # 与本函数其它失败路径一致，直接返回 None。
+        if not is_safe_external_url(image_url):
+            return None
+
         # 下载图片，允许重定向
         response = requests.get(image_url, stream=True, allow_redirects=True)
         response.raise_for_status()
@@ -354,6 +362,63 @@ def is_valid_url(url):
         return all([result.scheme in ["http", "https"], result.netloc])
     except Exception as e:  # noqa 841
         return False
+
+
+def _is_internal_ip(ip_text):
+    """是否属于不应被外部输入触及的地址段
+
+    覆盖环回、私有网段、链路本地（含云元数据 169.254.169.254）、
+    保留地址、组播与 0.0.0.0，IPv4/IPv6 都适用。
+    """
+    try:
+        ip = ipaddress.ip_address(ip_text)
+    except ValueError:
+        return False
+
+    return (
+        ip.is_loopback
+        or ip.is_private
+        or ip.is_link_local
+        or ip.is_reserved
+        or ip.is_multicast
+        or ip.is_unspecified
+    )
+
+
+def is_safe_external_url(url):
+    """校验"由用户或 AI 提供的 URL"是否可以安全抓取（防 SSRF）
+
+    只用于外部内容抓取（参考链接、文章里的图片地址）。
+    程序自身固定的接口地址（热搜 API、微信接口、本地 Ollama、健康检查）
+    不走这里，因此不会被误伤。
+
+    局限：这里做的是"解析域名后逐个校验 IP"。域名在校验与真正建立连接之间
+    仍可能被改指到内网（DNS rebinding / TOCTOU）。要彻底消除需在连接层
+    固定已校验的 IP；对桌面端场景，当前强度已能挡住直接指向内网的输入。
+    """
+    if not is_valid_url(url):
+        return False
+
+    try:
+        host = urllib.parse.urlparse(url).hostname
+    except ValueError:
+        return False
+
+    if not host:
+        return False
+
+    # 直接写 IP 的情况
+    if _is_internal_ip(host):
+        return False
+
+    try:
+        addr_infos = socket.getaddrinfo(host, None)
+    except (socket.gaierror, UnicodeError, ValueError):
+        # 解析不了就不抓
+        return False
+
+    # 任意一个解析结果指向内网即拒绝
+    return not any(_is_internal_ip(info[4][0]) for info in addr_infos)
 
 
 def sanitize_filename(filename):
