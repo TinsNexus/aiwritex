@@ -300,8 +300,18 @@ class URLRequest(BaseModel):
 
 @router.post("/open-url")
 async def open_external_url(request: URLRequest):
-    """打开外部链接"""
-    from src.ai_write_x.utils.utils import open_url
+    """打开外部链接（仅限 http/https）
+
+    该接口只服务于"打开官网下载页"这类外链需求。原实现还接受本地文件路径，
+    经由 open_url() 交给系统默认程序打开——在 Windows 上等于任意程序启动器。
+    这里直接把协议限定为 http/https，让本地文件分支无法从接口触达。
+    """
+    from src.ai_write_x.utils.utils import is_http_url, open_url
+
+    if not is_http_url(request.url):
+        raise HTTPException(
+            status_code=400, detail=translate("api.url_scheme_not_allowed")
+        )
 
     try:
         result = open_url(request.url)

@@ -751,5 +751,6 @@
   "art.selected_account_count_zero": "(已选 0 个)",
   "art.open_wechat_console": "打开公众号后台",
   "editor.monaco_not_loaded": "Monaco Editor loader 未加载",
-  "cw.invalid_url_detail": "存在无效的URL,请检查输入(确保使用http://或https://)"
+  "cw.invalid_url_detail": "存在无效的URL,请检查输入(确保使用http://或https://)",
+  "api.url_scheme_not_allowed": "只允许打开 http/https 链接"
 }

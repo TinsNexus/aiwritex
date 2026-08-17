@@ -288,27 +288,60 @@ def decompress_html(compressed_content, use_compress=True):
         return compressed_content.strip()
 
 
+# 允许通过 open_url 打开的文件类型：本函数只用于展示生成结果。
+# 必须是白名单——Windows 上 os.startfile 会直接“运行”可执行文件，
+# 放开 .exe/.bat/.cmd 等同于给出一个任意程序启动器。
+OPENABLE_SUFFIXES = frozenset(
+    {
+        ".html",
+        ".htm",
+        ".md",
+        ".txt",
+        ".json",
+        ".yaml",
+        ".yml",
+        ".pdf",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".webp",
+        ".bmp",
+    }
+)
+
+
+def is_http_url(value):
+    """是否为 http/https 链接（大小写不敏感）"""
+    try:
+        return urllib.parse.urlparse(str(value)).scheme.lower() in ("http", "https")
+    except ValueError:
+        return False
+
+
 def open_url(file_url):
     try:
-        if file_url.startswith(("http://", "https://")):
+        if is_http_url(file_url):
             webbrowser.open(file_url)
+            return ""
+
+        if not os.path.exists(file_url):
+            return "文件不存在！"
+
+        file_path = Path(file_url).resolve()
+
+        # 只打开白名单内的文件类型
+        if file_path.suffix.lower() not in OPENABLE_SUFFIXES:
+            return "不支持打开该类型的文件"
+
+        if sys.platform == "win32":
+            # 原实现是 subprocess.run(["start", "", path], shell=True)：
+            # shell=True 会把参数拼成命令行，文件名中的 & | ^ 等会被 shell 解释，
+            # 造成命令注入。os.startfile 不经过 shell。
+            os.startfile(str(file_path))  # noqa: S606  # Windows 专有
         else:
-            if not os.path.exists(file_url):
-                return "文件不存在！"
-
-            file_path = Path(file_url).resolve()
-
-            if sys.platform == "win32":
-                # Windows特殊处理：直接使用文件路径
-                import subprocess
-
-                subprocess.run(["start", "", str(file_path)], shell=True)
-            elif sys.platform == "darwin":
-                html_url = f"file://{urllib.parse.quote(str(file_path))}"
-                webbrowser.open(html_url)
-            else:
-                html_url = file_path.as_uri()
-                webbrowser.open(html_url)
+            # macOS 与 Linux 统一用 as_uri()，它会正确转义空格、# 等字符
+            webbrowser.open(file_path.as_uri())
 
         return ""
     except Exception as e:
