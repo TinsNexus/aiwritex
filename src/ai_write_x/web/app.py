@@ -124,10 +124,11 @@ async def read_root(request: Request):
         request,
         "index.html",
         {
+            "request": request,
             "version": get_version_with_prefix(),  # 传递版本号
             # 转义 < > &：json.dumps 不会转义 "</script>"，直接注入 <script> 块时
             # 词条内容可能提前闭合脚本标签。转成 < 等价且对 JSON.parse 无影响。
-            "i18n_bootstrap": (
+            "i18n_bootstrap": ( 
                 json.dumps(locale_bootstrap, ensure_ascii=False)
                 .replace("<", "\\u003c")
                 .replace(">", "\\u003e")

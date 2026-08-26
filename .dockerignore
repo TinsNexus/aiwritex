@@ -1,0 +1,45 @@
+# VCS
+.git
+.gitignore
+.gitattributes
+.github
+
+# Large local dirs
+.claude
+.venv
+venv
+node_modules
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Data dirs (persisted via volumes)
+logs/*
+output/*
+image/*
+!output/article/.gitkeep
+aiforge_work/
+backup/
+temp/
+tmp/
+
+# Docs & media
+*.jpg
+*.png
+*.jpeg
+*.gif
+docs/
+
+# Local config (mounted from ./config at runtime)
+config/config.yaml
+config/aiforge.toml
+.env
+license.dat
+
+# OS junk
+.DS_Store
