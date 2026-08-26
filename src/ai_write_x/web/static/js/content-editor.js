@@ -31,7 +31,7 @@ class ContentEditorDialog {
           
         return new Promise((resolve, reject) => {    
             if (typeof require === 'undefined') {    
-                reject(new Error('Monaco Editor loader 未加载'));    
+                reject(new Error(window.i18n.t('editor.monaco_not_loaded')));    
                 return;    
             }    
               
@@ -82,7 +82,7 @@ class ContentEditorDialog {
         this.dialog = document.createElement('div');    
         this.dialog.className = 'content-editor-dialog';    
           
-        const titleText = contentType === 'article' ? '编辑文章' : '编辑模板';    
+        const titleText = window.i18n.t(contentType === 'article' ? 'editor.title_article' : 'editor.title_template');    
           
         this.dialog.innerHTML = `    
             <div class="editor-container">    
@@ -98,40 +98,40 @@ class ContentEditorDialog {
                         <select class="language-selector" id="language-selector">    
                             <option value="html">HTML</option>    
                             <option value="markdown">Markdown</option>    
-                            <option value="plaintext">纯文本</option>    
+                            <option value="plaintext">${window.i18n.t('editor.plaintext')}</option>    
                         </select>    
                           
-                        <button class="btn-icon" id="format-code" title="格式化代码 (Shift+Alt+F)">    
+                        <button class="btn-icon" id="format-code" title="${window.i18n.t('editor.format_code')}">    
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">    
                                 <path d="M4 7h16M4 12h10M4 17h16"/>    
                             </svg>    
                         </button>    
-                        <button class="btn-icon" id="toggle-fullscreen" title="全屏 (F11)">    
+                        <button class="btn-icon" id="toggle-fullscreen" title="${window.i18n.t('editor.fullscreen')}">    
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">    
                                 <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>    
                             </svg>    
                         </button>    
-                        <button class="btn btn-secondary" id="cancel-edit">关闭</button>    
+                        <button class="btn btn-secondary" id="cancel-edit">${window.i18n.t('editor.close')}</button>    
                         <button class="btn btn-primary" id="save-template">    
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">    
                                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>    
                                 <polyline points="17 21 17 13 7 13 7 21"/>    
                                 <polyline points="7 3 7 8 15 8"/>    
                             </svg>    
-                            保存 (Ctrl+S)    
+                            ${window.i18n.t('editor.save_shortcut')}    
                         </button>    
                     </div>    
                 </div>    
                   
                 <div class="panels-header">    
                     <div class="panel-header-left">    
-                        <span id="language-label">HTML 代码</span>    
-                        <span class="editor-status" id="editor-status">行: 1, 列: 1</span>    
+                        <span id="language-label">${window.i18n.t('editor.lang_html')}</span>    
+                        <span class="editor-status" id="editor-status">${window.i18n.t('editor.cursor_pos', { line: 1, col: 1 })}</span>    
                     </div>    
                     <div class="panel-header-divider"></div>    
                     <div class="panel-header-right">    
-                        <span>实时预览</span>    
-                        <button class="btn-icon" id="refresh-preview" title="刷新预览">    
+                        <span>${window.i18n.t('editor.live_preview')}</span>    
+                        <button class="btn-icon" id="refresh-preview" title="${window.i18n.t('editor.refresh_preview')}">    
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">    
                                 <path d="M1 4v6h6M23 20v-6h-6"></path>    
                                 <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>    
@@ -148,7 +148,7 @@ class ContentEditorDialog {
                     <div class="resize-handle" id="resize-handle"></div>    
                       
                     <div class="editor-preview-panel">    
-                        <iframe id="preview-iframe" sandbox="allow-same-origin allow-scripts"></iframe>    
+                        <iframe id="preview-iframe" sandbox="allow-scripts"></iframe>    
                     </div>    
                 </div>    
             </div>    
@@ -204,7 +204,7 @@ class ContentEditorDialog {
         this.editor.onDidChangeCursorPosition((e) => {    
             const status = this.dialog.querySelector('#editor-status');    
             if (status) {    
-                status.textContent = `行: ${e.position.lineNumber}, 列: ${e.position.column}`;    
+                status.textContent = window.i18n.t('editor.cursor_pos', { line: e.position.lineNumber, col: e.position.column });    
             }    
         });    
     }    
@@ -212,7 +212,7 @@ class ContentEditorDialog {
     async loadTemplate() {    
         try {    
             if (!this.editor) {    
-                throw new Error('编辑器未初始化');    
+                throw new Error(window.i18n.t('editor.not_initialized'));    
             }    
               
             // 根据内容类型选择端点  
@@ -244,7 +244,7 @@ class ContentEditorDialog {
                 }    
             }, 100);    
         } catch (error) {    
-            const errorMsg = this.contentType === 'article' ? '加载文章失败' : '加载模板失败';  
+            const errorMsg = window.i18n.t(this.contentType === 'article' ? 'editor.load_article_failed' : 'editor.load_template_failed');  
             window.dialogManager?.showAlert(`${errorMsg}: ${error.message}`, 'error');    
         }    
     }  
@@ -273,7 +273,7 @@ class ContentEditorDialog {
         
         const iframe = document.createElement('iframe');  
         iframe.id = 'preview-iframe';  
-        iframe.sandbox = 'allow-same-origin allow-scripts';  
+        iframe.sandbox = 'allow-scripts';  
         
         // 获取CSS变量值  
         const computedStyle = getComputedStyle(document.documentElement);  
@@ -335,7 +335,7 @@ class ContentEditorDialog {
         
         const iframe = document.createElement('iframe');  
         iframe.id = 'preview-iframe';  
-        iframe.sandbox = 'allow-same-origin allow-scripts';  
+        iframe.sandbox = 'allow-scripts';  
         
         const htmlContent = this.markdownToHtml(content);  
         
@@ -487,7 +487,7 @@ class ContentEditorDialog {
         
         const iframe = document.createElement('iframe');  
         iframe.id = 'preview-iframe';  
-        iframe.sandbox = 'allow-same-origin allow-scripts';  
+        iframe.sandbox = 'allow-scripts';  
         
         // 获取CSS变量值  
         const computedStyle = getComputedStyle(document.documentElement);  
@@ -754,12 +754,12 @@ class ContentEditorDialog {
     updateLanguageLabel() {    
         const languageLabel = this.dialog.querySelector('#language-label');    
         const labelMap = {    
-            'html': 'HTML 代码',    
-            'markdown': 'Markdown 文档',    
-            'plaintext': '纯文本'    
+            'html': window.i18n.t('editor.lang_html'),    
+            'markdown': window.i18n.t('editor.lang_markdown'),    
+            'plaintext': window.i18n.t('editor.plaintext')    
         };    
         if (languageLabel) {    
-            languageLabel.textContent = labelMap[this.currentLanguage] || '代码';    
+            languageLabel.textContent = labelMap[this.currentLanguage] || window.i18n.t('editor.lang_code');    
         }    
     }  
         
@@ -804,7 +804,7 @@ class ContentEditorDialog {
                 
         try {        
             saveBtn.disabled = true;        
-            saveBtn.textContent = '保存中...';        
+            saveBtn.textContent = window.i18n.t('editor.saving');        
                 
             // 修改为查询参数格式    
             const apiPath = this.contentType === 'article'       
@@ -821,7 +821,7 @@ class ContentEditorDialog {
                 this.originalContent = content;      
                 this.isDirty = false;        
                     
-                const successMsg = this.contentType === 'article' ? '文章已保存' : '模板已保存';      
+                const successMsg = window.i18n.t(this.contentType === 'article' ? 'editor.article_saved' : 'editor.template_saved');      
                 window.app?.showNotification(successMsg, 'success');        
                         
                 // 刷新列表视图  
@@ -862,10 +862,10 @@ class ContentEditorDialog {
                 }  
             } else {        
                 const error = await response.json();     
-                window.dialogManager?.showAlert('保存失败: ' + (error.detail || '未知错误'), 'error');        
+                window.dialogManager?.showAlert(window.i18n.t('editor.save_failed', { msg: error.detail || window.i18n.t('editor.unknown_error') }), 'error');        
             }        
         } catch (error) {        
-            window.dialogManager?.showAlert('保存失败: ' + error.message, 'error');        
+            window.dialogManager?.showAlert(window.i18n.t('editor.save_failed', { msg: error.message }), 'error');        
         } finally {        
             saveBtn.disabled = false;        
             saveBtn.innerHTML = `        
@@ -874,7 +874,7 @@ class ContentEditorDialog {
                     <polyline points="17 21 17 13 7 13 7 21"/>        
                     <polyline points="7 3 7 8 15 8"/>        
                 </svg>        
-                保存 (Ctrl+S)        
+                ${window.i18n.t('editor.save_shortcut')}        
             `;        
         }       
     }
@@ -894,7 +894,7 @@ class ContentEditorDialog {
             }        
               
             window.dialogManager.showConfirm(        
-                '有未保存的修改,确认关闭?',        
+                window.i18n.t('editor.confirm_close_unsaved'),        
                 () => {        
                     this.destroy();        
                 },        

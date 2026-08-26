@@ -19,6 +19,9 @@ from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 import html
 from typing import List, Dict, Any
+
+from src.ai_write_x.utils import utils
+from src.ai_write_x.utils import log
 # from crewai_tools import SeleniumScrapingTool
 
 
@@ -495,6 +498,11 @@ def _extract_publish_time(page_soup):
 def extract_page_content(url, headers=None):
     """从 URL 提取页面内容和发布日期"""
     try:
+        # 参考链接由用户输入，拒绝指向内网/元数据地址的目标（SSRF）
+        if not utils.is_safe_external_url(url):
+            log.print_log(f"已拒绝抓取指向内网或非法地址的链接: {url}", "warning")
+            return None
+
         time.sleep(1)
         response = requests.get(url, headers=headers or {}, timeout=30)
         response.encoding = response.apparent_encoding or "utf-8"

@@ -115,8 +115,8 @@ class ConfigForm {
             <form class="config-form">  
                 ${fields.map(field => this.renderField(field)).join('')}  
                 <div class="form-actions">  
-                    <button type="submit" class="btn btn-primary">保存设置</button>  
-                    <button type="button" class="btn btn-secondary" id="reset-config">重置</button>  
+                    <button type="submit" class="btn btn-primary">${window.i18n.t('common.save')}</button>  
+                    <button type="button" class="btn btn-secondary" id="reset-config">${window.i18n.t('common.reset')}</button>  
                 </div>  
             </form>  
         `;  

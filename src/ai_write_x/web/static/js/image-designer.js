@@ -48,17 +48,17 @@ class ImageDesignerDialog {
                             <rect x="14" y="14" width="7" height="7"/>    
                             <path d="M10 10l4 4"/>    
                         </svg>    
-                        <span>页面设计 - ${articleTitle}</span>    
+                        <span>${window.i18n.t('des.title', { title: articleTitle })}</span>    
                     </h2>    
                     <div class="editor-actions">    
-                        <button class="btn btn-secondary" id="designer-cancel">关闭</button>  
+                        <button class="btn btn-secondary" id="designer-cancel">${window.i18n.t('editor.close')}</button>  
                         <button class="btn btn-secondary" id="designer-set-cover">  
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>  
                                 <circle cx="8.5" cy="8.5" r="1.5"/>  
                                 <polyline points="21 15 16 10 5 21"/>  
                             </svg>  
-                            设置封面  
+                            ${window.i18n.t('des.set_cover')}  
                         </button>  
                         <button class="btn btn-primary" id="designer-save">    
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">    
@@ -66,7 +66,7 @@ class ImageDesignerDialog {
                                 <polyline points="17 21 17 13 7 13 7 21"/>    
                                 <polyline points="7 3 7 8 15 8"/>    
                             </svg>    
-                            保存 (Ctrl+S)     
+                            ${window.i18n.t('editor.save_shortcut')}     
                         </button>    
                     </div>    
                 </div>    
@@ -96,8 +96,8 @@ class ImageDesignerDialog {
             plugins: ['grapesjs-preset-webpage'],        
             pluginsOpts: {        
                 'grapesjs-preset-webpage': {        
-                    modalImportTitle: '导入',        
-                    modalImportLabel: '<div>粘贴HTML</div>',        
+                    modalImportTitle: window.i18n.t('des.import'),        
+                    modalImportLabel: window.i18n.t('des.paste_html'),        
                 }        
             },  
             
@@ -151,10 +151,10 @@ class ImageDesignerDialog {
             },        
             styleManager: {        
                 sectors: [        
-                    { name: '布局', open: true, properties: ['margin', 'padding', 'width', 'height', 'display'] },        
-                    { name: '排版', properties: ['font-family', 'font-size', 'font-weight', 'color', 'text-align'] },        
-                    { name: '背景', properties: ['background-color', 'background-image'] },        
-                    { name: '边框', properties: ['border', 'border-radius', 'box-shadow'] }        
+                    { name: window.i18n.t('des.sector_layout'), open: true, properties: ['margin', 'padding', 'width', 'height', 'display'] },        
+                    { name: window.i18n.t('des.sector_typography'), properties: ['font-family', 'font-size', 'font-weight', 'color', 'text-align'] },        
+                    { name: window.i18n.t('des.sector_background'), properties: ['background-color', 'background-image'] },        
+                    { name: window.i18n.t('des.sector_border'), properties: ['border', 'border-radius', 'box-shadow'] }        
                 ]        
             }      
         });        
@@ -179,10 +179,10 @@ class ImageDesignerDialog {
             if (!this.editor.getComponents().length) {        
                 this.editor.setComponents(`        
                     <div style="padding: 40px; text-align: center; background: var(--surface-color); border-radius: 8px; margin: 20px;">        
-                        <h2 style="color: var(--text-primary); margin-bottom: 16px;">欢迎使用页面设计器</h2>        
-                        <p style="color: var(--text-secondary); margin-bottom: 24px;">从右侧拖拽组件开始设计,或导入现有HTML代码</p>        
+                        <h2 style="color: var(--text-primary); margin-bottom: 16px;">${window.i18n.t('des.welcome_title')}</h2>        
+                        <p style="color: var(--text-secondary); margin-bottom: 24px;">${window.i18n.t('des.welcome_desc')}</p>        
                         <div style="display: flex; gap: 12px; justify-content: center;">        
-                            <button style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">开始设计</button>        
+                            <button style="padding: 8px 16px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer;">${window.i18n.t('des.start_design')}</button>        
                         </div>        
                     </div>        
                 `);        
@@ -230,20 +230,20 @@ class ImageDesignerDialog {
         const bm = this.editor.BlockManager;  
           
         bm.add('article-image', {  
-            label: '文章配图',  
-            category: '配图组件',  
+            label: window.i18n.t('des.block_article_image'),  
+            category: window.i18n.t('des.block_category'),  
             content: `  
                 <div style="margin: 20px 0; text-align: center;">  
                     <img src="https://via.placeholder.com/800x400"   
                          style="max-width: 100%; height: auto; border-radius: 8px;" />  
-                    <p style="margin-top: 8px; font-size: 14px; color: #666;">图片说明</p>  
+                    <p style="margin-top: 8px; font-size: 14px; color: #666;">${window.i18n.t('des.image_caption')}</p>  
                 </div>  
             `  
         });  
           
         bm.add('cover-image', {  
-            label: '封面图',  
-            category: '配图组件',  
+            label: window.i18n.t('des.block_cover'),  
+            category: window.i18n.t('des.block_category'),  
             content: `  
                 <div style="width: 100%; height: 400px; position: relative;">  
                     <img src="https://via.placeholder.com/1200x400"   
@@ -253,15 +253,15 @@ class ImageDesignerDialog {
         });  
           
         bm.add('image-text-layout', {  
-            label: '图文混排',  
-            category: '配图组件',  
+            label: window.i18n.t('des.block_mixed'),  
+            category: window.i18n.t('des.block_category'),  
             content: `  
                 <div style="display: flex; gap: 20px; margin: 20px 0;">  
                     <img src="https://via.placeholder.com/300x200"   
                          style="width: 300px; height: 200px; object-fit: cover; border-radius: 8px;" />  
                     <div style="flex: 1;">  
-                        <h3>标题</h3>  
-                        <p>这里是文字内容,可以自由编辑...</p>  
+                        <h3>${window.i18n.t('des.sample_heading')}</h3>  
+                        <p>${window.i18n.t('des.sample_text')}</p>  
                     </div>  
                 </div>  
             `  
@@ -496,7 +496,7 @@ class ImageDesignerDialog {
             });      
             
             if (!designResponse.ok) {    
-                throw new Error('保存设计数据失败');    
+                throw new Error(window.i18n.t('des.save_design_failed'));    
             }    
             
             // 更新原始文件  
@@ -509,11 +509,11 @@ class ImageDesignerDialog {
             });    
             
             if (!contentResponse.ok) {    
-                throw new Error('更新原始文件失败');    
+                throw new Error(window.i18n.t('des.update_source_failed'));    
             }    
             
             this.isDirty = false;      
-            window.app?.showNotification('设计已保存', 'success');      
+            window.app?.showNotification(window.i18n.t('des.design_saved'), 'success');      
             
             if (window.articleManager) {    
                 await window.articleManager.loadArticles();    
@@ -536,7 +536,7 @@ class ImageDesignerDialog {
                 }  
             }  
         } catch (error) {      
-            window.app?.showNotification('保存失败: ' + error.message, 'error');      
+            window.app?.showNotification(window.i18n.t('err.save_failed', { msg: error.message }), 'error');      
         }      
     }
        
@@ -631,11 +631,11 @@ class ImageDesignerDialog {
     async setCover() {  
         try {  
             const response = await fetch('/api/articles/images');  
-            if (!response.ok) throw new Error('获取图片列表失败');  
+            if (!response.ok) throw new Error(window.i18n.t('des.get_images_failed'));  
             
             const images = await response.json();  
             if (!images || images.length === 0) {  
-                window.app?.showNotification('没有可用的图片,请先上传图片', 'warning');  
+                window.app?.showNotification(window.i18n.t('des.no_images'), 'warning');  
                 return;  
             }  
             
@@ -652,7 +652,7 @@ class ImageDesignerDialog {
                                 <circle cx="8.5" cy="8.5" r="1.5"/>  
                                 <polyline points="21 15 16 10 5 21"/>  
                             </svg>  
-                            设置封面图片  
+                            ${window.i18n.t('des.set_cover_image')}  
                         </h2>  
                         <button class="btn-icon modal-close" id="cover-cancel">×</button>  
                     </div>  
@@ -661,7 +661,7 @@ class ImageDesignerDialog {
                         <!-- 左侧: 当前封面预览区 -->  
                         <div style="flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 400px;">  
                             <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-primary);">  
-                                当前封面预览  
+                                ${window.i18n.t('des.current_cover_preview')}  
                             </h3>  
                             <div id="current-cover-preview" style="  
                                 width: 100%;  
@@ -683,28 +683,28 @@ class ImageDesignerDialog {
                                             <circle cx="8.5" cy="8.5" r="1.5"/>  
                                             <polyline points="21 15 16 10 5 21"/>  
                                         </svg>  
-                                        <p style="margin-top: 8px; font-size: 13px;">未设置封面</p>  
+                                        <p style="margin-top: 8px; font-size: 13px;">${window.i18n.t('des.no_cover')}</p>  
                                     </div>  
                                 `}  
                             </div>  
                             
                             <div style="padding: 10px; background: var(--surface-color); border-radius: 6px; font-size: 12px; color: var(--text-secondary);">  
-                                <p style="margin: 0 0 6px 0; font-weight: 500;">封面尺寸要求:</p>  
+                                <p style="margin: 0 0 6px 0; font-weight: 500;">${window.i18n.t('des.cover_requirements')}</p>  
                                 <ul style="margin: 0; padding-left: 18px; line-height: 1.6;">  
-                                    <li>推荐比例: 900×384</li>  
-                                    <li>支持格式: JPG, PNG, GIF</li>  
+                                    <li>${window.i18n.t('des.cover_ratio')}</li>  
+                                    <li>${window.i18n.t('des.cover_formats')}</li>  
                                 </ul>  
                             </div>  
                             
                             <div style="display: flex; gap: 8px; margin-top: auto;">          
                                 <button class="btn btn-secondary" id="clear-cover" style="flex: 1;">          
-                                    清除封面          
+                                    ${window.i18n.t('des.clear_cover')}          
                                 </button>    
                                 <button class="btn btn-secondary" id="restore-cover" style="flex: 1;">          
-                                    恢复原始          
+                                    ${window.i18n.t('des.restore_original')}          
                                 </button>          
                                 <button class="btn btn-primary" id="confirm-cover" style="flex: 1;">          
-                                    确认设置          
+                                    ${window.i18n.t('des.confirm_set')}          
                                 </button>          
                             </div>
                         </div>  
@@ -713,7 +713,7 @@ class ImageDesignerDialog {
                         <div style="flex: 0 0 400px; display: flex; flex-direction: column; gap: 12px;">  
                             <div style="display: flex; align-items: center; justify-content: space-between;">  
                                 <h3 style="margin: 0; font-size: 14px; font-weight: 600; color: var(--text-primary);">  
-                                    选择图片 (${images.length})  
+                                    ${window.i18n.t('des.select_image_count', { count: images.length })}  
                                 </h3>  
                             </div>  
                             
@@ -776,7 +776,7 @@ class ImageDesignerDialog {
                                                     padding: 2px 8px;  
                                                     font-size: 11px;  
                                                     font-weight: 600;  
-                                                ">当前</div>  
+                                                ">${window.i18n.t('des.current_badge')}</div>  
                                             ` : ''}  
                                         </div>  
                                     `).join('')}  
@@ -793,7 +793,7 @@ class ImageDesignerDialog {
             this.bindCoverDialogEvents(dialog, currentCover);  
             
         } catch (error) {  
-            window.app?.showNotification('设置封面失败: ' + error.message, 'error');  
+            window.app?.showNotification(window.i18n.t('des.set_cover_failed', { msg: error.message }), 'error');  
         }  
     }
     
@@ -821,7 +821,7 @@ class ImageDesignerDialog {
                             <circle cx="8.5" cy="8.5" r="1.5"/>          
                             <polyline points="21 15 16 10 5 21"/>          
                         </svg>          
-                        <p style="margin-top: 8px; font-size: 13px;">未设置封面</p>          
+                        <p style="margin-top: 8px; font-size: 13px;">${window.i18n.t('des.no_cover')}</p>          
                     </div>          
                 `;          
             }          
@@ -911,7 +911,7 @@ class ImageDesignerDialog {
             updatePreview(null);          
             updateImageSelection(null);  // 这会隐藏所有"当前"标志  
             updateButtonStates();          
-            window.app?.showNotification('已清空封面选择(未保存)', 'info');          
+            window.app?.showNotification(window.i18n.t('des.cover_cleared'), 'info');          
         });    
         
         // 恢复按钮 - 恢复到原始状态,不保存        
@@ -920,7 +920,7 @@ class ImageDesignerDialog {
             updatePreview(originalCover);            
             updateImageSelection(originalCover);  // 如果 originalCover 存在,会显示"当前"标志  
             updateButtonStates();            
-            window.app?.showNotification(originalCover ? '已恢复到原始封面(未保存)' : '已恢复到未设置状态(未保存)', 'info');            
+            window.app?.showNotification(window.i18n.t(originalCover ? 'des.cover_restored' : 'des.cover_reset_none'), 'info');            
         });      
         
         // 确认按钮 - 保存当前选择到后端        
@@ -964,7 +964,7 @@ class ImageDesignerDialog {
                                 font-size: 11px;    
                                 font-weight: 600;    
                             `;    
-                            badge.textContent = '当前';    
+                            badge.textContent = window.i18n.t('des.current_badge');    
                             selectedOption.appendChild(badge);    
                         }    
                     }  
@@ -973,13 +973,13 @@ class ImageDesignerDialog {
                     
                     updateButtonStates();  
 
-                    window.app?.showNotification('封面设置成功', 'success');       
+                    window.app?.showNotification(window.i18n.t('des.cover_set_success'), 'success');       
                 } else {              
-                    throw new Error('设置封面失败');              
+                    throw new Error(window.i18n.t('des.set_cover_failed_plain'));              
                 }              
             } catch (error) {              
                 console.error('设置封面异常:', error);              
-                window.app?.showNotification('设置封面失败: ' + error.message, 'error');              
+                window.app?.showNotification(window.i18n.t('des.set_cover_failed', { msg: error.message }), 'error');              
             }              
         }); 
         
@@ -1027,7 +1027,7 @@ class ImageDesignerDialog {
             }  
             
             window.dialogManager.showConfirm(  
-                '有未保存的修改,确认关闭?',  
+                window.i18n.t('editor.confirm_close_unsaved'),  
                 () => {  
                     this.destroy();  
                 },  

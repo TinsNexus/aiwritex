@@ -15,6 +15,11 @@ from src.ai_write_x.tools.wx_publisher import pub2wx
 from src.ai_write_x.utils import utils
 
 
+from src.ai_write_x.web.i18n import translate
+from src.ai_write_x.web.safe_path import resolve_within
+from src.ai_write_x.web.local_guard import PREVIEW_CSP
+
+
 router = APIRouter(prefix="/api/articles", tags=["articles"])
 
 
@@ -69,9 +74,9 @@ async def list_articles():
 @router.get("/content")
 async def get_article_content(path: str):
     """获取文章内容 - 使用查询参数"""
-    file_path = Path(path)
+    file_path = resolve_within(path, PathManager.get_article_dir())
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="文章不存在")
+        raise HTTPException(status_code=404, detail=translate("api.article_not_found"))
 
     content = file_path.read_text(encoding="utf-8")
     return Response(content=content, media_type="text/plain; charset=utf-8")
@@ -80,35 +85,35 @@ async def get_article_content(path: str):
 @router.put("/content")
 async def update_article_content(path: str, update: ArticleContentUpdate):
     """更新文章内容"""
-    file_path = Path(path)
+    file_path = resolve_within(path, PathManager.get_article_dir())
     if not file_path.exists():
-        raise HTTPException(status_code=404, detail="文章不存在")
+        raise HTTPException(status_code=404, detail=translate("api.article_not_found"))
 
     file_path.write_text(update.content, encoding="utf-8")
-    return {"status": "success", "message": "文章已保存"}
+    return {"status": "success", "message": translate("api.article_saved")}
 
 
 @router.get("/preview")
 async def preview_article(path: str):
     """安全预览文章 - 使用查询参数"""
-    file_path = Path(path)
+    file_path = resolve_within(path, PathManager.get_article_dir())
     if not file_path.exists():
         return HTMLResponse("<p>文章不存在</p>")
 
     content = file_path.read_text(encoding="utf-8")
     return HTMLResponse(
-        content, headers={"Content-Security-Policy": "default-src 'self' 'unsafe-inline'"}
+        content, headers={"Content-Security-Policy": PREVIEW_CSP}
     )
 
 
 @router.delete("/{article_path:path}")
 async def delete_article(article_path: str):
     """删除文章"""
-    file_path = Path(article_path)
+    file_path = resolve_within(article_path, PathManager.get_article_dir())
     if file_path.exists():
         file_path.unlink()
-        return {"status": "success", "message": "文章已删除"}
-    raise HTTPException(status_code=404, detail="文章不存在")
+        return {"status": "success", "message": translate("api.article_deleted")}
+    raise HTTPException(status_code=404, detail=translate("api.article_not_found"))
 
 
 @router.post("/publish")
@@ -119,7 +124,7 @@ async def publish_articles(request: PublishRequest):
         credentials = config.wechat_credentials
 
         if not credentials:
-            raise HTTPException(status_code=400, detail="未配置微信账号")
+            raise HTTPException(status_code=400, detail=translate("api.no_wechat_account"))
 
         success_count = 0
         fail_count = 0
@@ -128,7 +133,7 @@ async def publish_articles(request: PublishRequest):
         format_publish = config.format_publish
 
         for article_path in request.article_paths:
-            file_path = Path(article_path)
+            file_path = resolve_within(article_path, PathManager.get_article_dir())
             if not file_path.exists():
                 fail_count += 1
                 error_details.append(f"{article_path}: 文件不存在")
@@ -233,6 +238,9 @@ async def publish_articles(request: PublishRequest):
             "warning_details": warning_details,
             "error_details": error_details,
         }
+    except HTTPException:
+        # 403/400 等已明确的错误原样返回，不要被包成 500
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -356,7 +364,7 @@ class ArticleDesign(BaseModel):
 async def save_article_design(design: ArticleDesign):
     """保存文章设计(包括封面)"""
     try:
-        article_path = Path(design.article)
+        article_path = resolve_within(design.article, PathManager.get_article_dir())
         design_path = article_path.with_suffix(".design.json")
 
         design_data = {"html": design.html, "css": design.css, "cover": design.cover}  # 保存封面
@@ -364,7 +372,10 @@ async def save_article_design(design: ArticleDesign):
         with open(design_path, "w", encoding="utf-8") as f:
             json.dump(design_data, f, ensure_ascii=False, indent=2)
 
-        return {"success": True, "message": "设计已保存"}
+        return {"success": True, "message": translate("api.design_saved")}
+    except HTTPException:
+        # 403/400 等已明确的错误原样返回，不要被包成 500
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -373,7 +384,7 @@ async def save_article_design(design: ArticleDesign):
 async def load_article_design(article: str):
     """加载文章设计(包括封面)"""
     try:
-        article_path = Path(article)
+        article_path = resolve_within(article, PathManager.get_article_dir())
         design_path = article_path.with_suffix(".design.json")
 
         if not design_path.exists():
@@ -387,6 +398,9 @@ async def load_article_design(article: str):
             "css": design_data.get("css", ""),
             "cover": design_data.get("cover", ""),
         }
+    except HTTPException:
+        # 403/400 等已明确的错误原样返回，不要被包成 500
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -399,7 +413,12 @@ async def upload_image(image: UploadFile = File(...)):
         image_dir = PathManager.get_image_dir()
 
         # 生成唯一文件名
-        file_ext = Path(image.filename).suffix or ".jpg"
+        # 只允许图片后缀：/images 是同源静态目录，上传 .html/.svg 会被当作
+        # 文档渲染，等于在应用源内注入脚本（存储型 XSS）
+        allowed_ext = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
+        file_ext = Path(image.filename or "").suffix.lower()
+        if file_ext not in allowed_ext:
+            file_ext = ".jpg"
         unique_filename = f"{uuid.uuid4().hex}{file_ext}"
         file_path = image_dir / unique_filename
 

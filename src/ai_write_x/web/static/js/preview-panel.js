@@ -66,7 +66,7 @@ class PreviewPanelManager {
         if (editBtn) {  
             editBtn.addEventListener('click', async () => {  
                 if (!this.currentArticleInfo) {  
-                    window.app?.showNotification('无法获取文章信息', 'error');  
+                    window.app?.showNotification(window.i18n.t('preview.no_article_info'), 'error');  
                     return;  
                 }  
                 
@@ -82,7 +82,7 @@ class PreviewPanelManager {
                         'article'  
                     );  
                 } catch (error) {  
-                    window.app?.showNotification('打开编辑器失败: ' + error.message, 'error');  
+                    window.app?.showNotification(window.i18n.t('preview.open_editor_failed', { msg: error.message }), 'error');  
                 }  
             });  
         }  
@@ -92,7 +92,7 @@ class PreviewPanelManager {
         if (designBtn) {  
             designBtn.addEventListener('click', async () => {  
                 if (!this.currentArticleInfo) {  
-                    window.app?.showNotification('无法获取文章信息', 'error');  
+                    window.app?.showNotification(window.i18n.t('preview.no_article_info'), 'error');  
                     return;  
                 }  
                 
@@ -104,7 +104,7 @@ class PreviewPanelManager {
                     // this.hide();  
                     await window.imageDesignerDialog.open(this.currentArticleInfo.path);  
                 } catch (error) {  
-                    window.app?.showNotification('打开设计器失败: ' + error.message, 'error');  
+                    window.app?.showNotification(window.i18n.t('preview.open_designer_failed', { msg: error.message }), 'error');  
                 }  
             });  
         }  
@@ -114,7 +114,7 @@ class PreviewPanelManager {
         if (publishBtn) {  
             publishBtn.addEventListener('click', async () => {  
                 if (!this.currentArticleInfo) {  
-                    window.app?.showNotification('无法获取文章信息', 'error');  
+                    window.app?.showNotification(window.i18n.t('preview.no_article_info'), 'error');  
                     return;  
                 }  
                 
@@ -126,7 +126,7 @@ class PreviewPanelManager {
                     
                     // 检查 showPublishDialog 方法是否存在  
                     if (typeof window.articleManager.showPublishDialog !== 'function') {  
-                        window.app?.showNotification('发布功能不可用', 'error');  
+                        window.app?.showNotification(window.i18n.t('preview.publish_unavailable'), 'error');  
                         return;  
                     }  
                     
@@ -136,7 +136,7 @@ class PreviewPanelManager {
                     // 打开发布对话框  
                     await window.articleManager.showPublishDialog(this.currentArticleInfo.path);  
                 } catch (error) {  
-                    window.app?.showNotification('打开发布对话框失败: ' + error.message, 'error');  
+                    window.app?.showNotification(window.i18n.t('preview.open_publish_failed', { msg: error.message }), 'error');  
                 }  
             });  
         }  
@@ -183,7 +183,7 @@ class PreviewPanelManager {
         // 清空预览内容,恢复初始占位符  
         const previewArea = document.getElementById('preview-area');  
         if (previewArea) {  
-            previewArea.innerHTML = '<p class="preview-placeholder">内容预览将在这里显示</p>';  
+            previewArea.innerHTML = `<p class="preview-placeholder">${window.i18n.t('preview.placeholder')}</p>`;  
         }  
           
         // 重置尺寸为默认(mobile)  
@@ -229,10 +229,10 @@ class PreviewPanelManager {
         const tooltip = triggerBtn.querySelector('.trigger-tooltip');    
         if (this.isVisible) {    
             triggerBtn.classList.add('active');    
-            if (tooltip) tooltip.textContent = '关闭预览';    
+            if (tooltip) tooltip.textContent = window.i18n.t('preview.close_tooltip');    
         } else {    
             triggerBtn.classList.remove('active');    
-            if (tooltip) tooltip.textContent = '预览面板';    
+            if (tooltip) tooltip.textContent = window.i18n.t('preview.panel_tooltip');    
         }    
     }    
         
@@ -361,7 +361,7 @@ class PreviewPanelManager {
                     right: 0;    
                     bottom: 0;    
                 `;    
-                iframe.sandbox = 'allow-same-origin allow-scripts';    
+                iframe.sandbox = 'allow-scripts';    
                 iframe.srcdoc = finalContent;    
                   
                 // 确保 preview-area 有正确的定位上下文    
@@ -418,13 +418,13 @@ class PreviewPanelManager {
                 if (window.previewPanelManager) {      
                     window.previewPanelManager.show(html);      
                 } else {      
-                    this.showNotification('预览面板未初始化', 'error');      
+                    this.showNotification(window.i18n.t('preview.not_initialized'), 'error');      
                 }      
             } else {      
-                throw new Error('加载失败');      
+                throw new Error(window.i18n.t('preview.load_failed'));      
             }      
         } catch (error) {      
-            this.showNotification('预览失败: ' + error.message, 'error');      
+            this.showNotification(window.i18n.t('preview.failed', { msg: error.message }), 'error');      
         }      
     }      
         
@@ -450,7 +450,7 @@ class PreviewPanelManager {
         // 清空预览内容,恢复初始占位符  
         const previewArea = document.getElementById('preview-area');  
         if (previewArea) {  
-            previewArea.innerHTML = '<p class="preview-placeholder">内容预览将在这里显示</p>';  
+            previewArea.innerHTML = `<p class="preview-placeholder">${window.i18n.t('preview.placeholder')}</p>`;  
         }  
         
         // 重置尺寸为默认(mobile)  

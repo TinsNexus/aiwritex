@@ -1,7 +1,7 @@
 /* AIWriteX 主样式文件 - 核心变量和布局 */    
 :root {    
     /* 统一的布局变量 */    
-    --sidebar-width: 200px;    
+    --sidebar-width: 230px;  /* 230 而非 200：非中文语言的导航标签更长（如越南语「Cài đặt hệ thống」） */    
     --header-height: 60px;    
     --footer-height: 40px;
     --content-bottom-padding: 20px; 

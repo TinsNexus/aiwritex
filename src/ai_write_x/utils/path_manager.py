@@ -26,15 +26,16 @@ class PathManager:
 
     @staticmethod
     def get_config_dir():
-        """获取配置文件目录"""
-        if not utils.get_is_release_ver():
-            # 开发模式：使用源码目录
-            return Path(__file__).parent.parent / "config"
-        else:
-            # 发布模式：使用用户数据目录
-            config_dir = PathManager.get_app_data_dir() / "config"
-            config_dir.mkdir(parents=True, exist_ok=True)
-            return config_dir
+        """获取配置文件目录 —— 开发与发布模式统一使用用户数据目录
+
+        开发模式此前指向源码目录，保存配置会把 API Key、公众号 appsecret 写进
+        被 Git 跟踪的 config.yaml / aiforge.toml，一次 `git commit -a` 就可能
+        把密钥推到公开仓库。源码树中的同名文件现在只作为默认模板（种子），
+        首次运行时复制到这里，之后不再写回源码树。
+        """
+        config_dir = PathManager.get_app_data_dir() / "config"
+        config_dir.mkdir(parents=True, exist_ok=True)
+        return config_dir
 
     @staticmethod
     def get_article_dir():

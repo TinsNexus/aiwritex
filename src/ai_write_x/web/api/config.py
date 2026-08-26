@@ -16,6 +16,11 @@ from src.ai_write_x.utils.path_manager import PathManager
 from src.ai_write_x.adapters.platform_adapters import PlatformType
 
 
+from src.ai_write_x.web.i18n import DEFAULT_UI_LOCALE, translate
+from src.ai_write_x.web.safe_path import safe_name
+from src.ai_write_x.web.secret_mask import mask_config, unmask_config
+
+
 router = APIRouter(prefix="/api/config", tags=["config"])
 
 
@@ -52,6 +57,10 @@ async def get_config():
             "page_design": config_dict.get("page_design"),
         }
 
+        # 密钥一律脱敏后再出站：界面只需要辨认，不需要明文
+        config_data, masked_aiforge = mask_config(config_data, config.aiforge_config)
+        config_data["aiforge_config"] = masked_aiforge
+
         return {"status": "success", "data": config_data}
 
     except Exception as e:
@@ -65,6 +74,10 @@ async def update_config_memory(request: ConfigUpdateRequest):
     try:
         config = Config.get_instance()
         config_data = request.config_data.get("config_data", request.config_data)
+
+        # 界面回传的是脱敏值，先还原成已存储的真实密钥，
+        # 否则一次保存就会把掩码字符串当成密钥写进配置
+        config_data = unmask_config(config_data, config.config, config.aiforge_config)
 
         # 深度合并配置到内存
         def deep_merge(target, source):
@@ -82,7 +95,7 @@ async def update_config_memory(request: ConfigUpdateRequest):
             # 处理config.yaml的配置
             deep_merge(config.config, config_data)
 
-        return {"status": "success", "message": "配置已更新(仅内存)"}
+        return {"status": "success", "message": translate("api.config_updated_memory")}
     except Exception as e:
         log.print_log(f"更新内存配置失败: {str(e)}", "error")
         raise HTTPException(status_code=500, detail=str(e))
@@ -95,9 +108,9 @@ async def save_config_to_file():
         config = Config.get_instance()
 
         if config.save_config(config.config, config.aiforge_config):
-            return {"status": "success", "message": "配置已保存"}
+            return {"status": "success", "message": translate("api.config_saved")}
         else:
-            raise HTTPException(status_code=500, detail="配置保存失败")
+            raise HTTPException(status_code=500, detail=translate("api.config_save_failed"))
     except Exception as e:
         log.print_log(f"保存配置失败: {str(e)}", "error")
         raise HTTPException(status_code=500, detail=str(e))
@@ -131,7 +144,7 @@ async def get_ui_config():
     config_file = get_ui_config_path()
     if config_file.exists():
         return json.loads(config_file.read_text(encoding="utf-8"))
-    return {"theme": "light", "windowMode": "STANDARD"}
+    return {"theme": "light", "windowMode": "STANDARD", "locale": DEFAULT_UI_LOCALE}
 
 
 @router.post("/ui-config")
@@ -163,7 +176,7 @@ async def get_templates_by_category(category: str):
         if category == "随机分类":
             return {"status": "success", "data": []}
 
-        templates = PathManager.get_templates_by_category(category)
+        templates = PathManager.get_templates_by_category(safe_name(category, "category"))
 
         return {"status": "success", "data": templates}
     except Exception as e:
@@ -176,7 +189,11 @@ async def get_platforms():
     """获取所有支持的发布平台"""
     try:
         platforms = [
-            {"value": platform_value, "label": PlatformType.get_display_name(platform_value)}
+            {
+                "value": platform_value,
+                # 适配器中的中文名仍是规范数据，这里只翻译展示用的标签
+                "label": translate(f"platform.{platform_value}"),
+            }
             for platform_value in PlatformType.get_all_platforms()
         ]
 
@@ -197,14 +214,11 @@ async def get_system_messages():
     # 如果配置中没有,返回默认消息
     if not system_messages:
         system_messages = [
-            {"text": "欢迎使用AIWriteX智能内容创作平台", "type": "info"},
-            {"text": "本项目禁止用于商业用途，仅限个人使用", "type": "info"},
-            {"text": "技术支持与业务合作，请联系522765228@qq.com", "type": "info"},
-            {
-                "text": "AIWriteX重新定义AI辅助内容创作的边界，融合搜索+借鉴+AI+创意四重能力，多种超绝玩法，让内容创作充满无限可能",
-                "type": "info",
-            },
-            {"text": "更多AIWriteX功能开发中，敬请期待", "type": "info"},
+            {"text": translate("sysmsg.welcome"), "type": "info"},
+            {"text": translate("sysmsg.non_commercial"), "type": "info"},
+            {"text": translate("sysmsg.contact"), "type": "info"},
+            {"text": translate("sysmsg.tagline"), "type": "info"},
+            {"text": translate("sysmsg.more_coming"), "type": "info"},
         ]
 
     return {"status": "success", "data": system_messages}
@@ -286,8 +300,18 @@ class URLRequest(BaseModel):
 
 @router.post("/open-url")
 async def open_external_url(request: URLRequest):
-    """打开外部链接"""
-    from src.ai_write_x.utils.utils import open_url
+    """打开外部链接（仅限 http/https）
+
+    该接口只服务于"打开官网下载页"这类外链需求。原实现还接受本地文件路径，
+    经由 open_url() 交给系统默认程序打开——在 Windows 上等于任意程序启动器。
+    这里直接把协议限定为 http/https，让本地文件分支无法从接口触达。
+    """
+    from src.ai_write_x.utils.utils import is_http_url, open_url
+
+    if not is_http_url(request.url):
+        raise HTTPException(
+            status_code=400, detail=translate("api.url_scheme_not_allowed")
+        )
 
     try:
         result = open_url(request.url)

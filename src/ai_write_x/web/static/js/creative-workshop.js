@@ -65,7 +65,7 @@ class CreativeWorkshopManager {
             
         const defaultOption = document.createElement('option');      
         defaultOption.value = '';      
-        defaultOption.textContent = '随机分类';      
+        defaultOption.textContent = window.i18n.t('cw.random_category');      
         select.appendChild(defaultOption);      
             
         this.templateCategories.forEach(category => {      
@@ -103,7 +103,7 @@ class CreativeWorkshopManager {
             
         const defaultOption = document.createElement('option');      
         defaultOption.value = '';      
-        defaultOption.textContent = '随机模板';      
+        defaultOption.textContent = window.i18n.t('cw.random_template');      
         select.appendChild(defaultOption);      
             
         templates.forEach(template => {      
@@ -216,7 +216,7 @@ class CreativeWorkshopManager {
         if (!panel || !referenceModeBtn) return;  
         
         if (this.isGenerating) {  
-            window.app?.showNotification('生成过程中无法切换借鉴模式', 'warning');  
+            window.app?.showNotification(window.i18n.t('cw.no_switch_while_running'), 'warning');  
             return;  
         }  
 
@@ -307,7 +307,7 @@ class CreativeWorkshopManager {
             if (statusResponse.ok) {  
                 const status = await statusResponse.json();  
                 if (status.status === 'running') {  
-                    window.app?.showNotification('已有任务正在运行,请稍后再试', 'warning');  
+                    window.app?.showNotification(window.i18n.t('cw.task_already_running'), 'warning');  
                     return;  
                 }  
             }  
@@ -320,12 +320,12 @@ class CreativeWorkshopManager {
             const configResponse = await fetch('/api/config/validate');  
             if (!configResponse.ok) {  
                 const error = await configResponse.json();  
-                this.showConfigErrorDialog(error.detail || '系统配置错误,请检查配置');  
+                this.showConfigErrorDialog(this.extractDetail(error), error.detail && error.detail.panel);  
                 return; 
             }  
         } catch (error) {  
             console.error('配置验证失败:', error);  
-            this.showConfigErrorDialog('无法验证配置,请检查系统设置');  
+            this.showConfigErrorDialog(window.i18n.t('cw.config_verify_failed'));  
             return;  
         }  
         
@@ -336,7 +336,7 @@ class CreativeWorkshopManager {
         // 借鉴模式参数校验  
         if (referenceConfig) {  
             if (!topic) {  
-                window.app?.showNotification('借鉴模式下必须输入话题', 'error');  
+                window.app?.showNotification(window.i18n.t('cw.topic_required'), 'error');  
                 return; 
             }  
             
@@ -348,7 +348,7 @@ class CreativeWorkshopManager {
                 const invalidUrls = urls.filter(url => !this.isValidUrl(url));  
                 if (invalidUrls.length > 0) {  
                     window.app?.showNotification(  
-                        '存在无效的URL,请检查输入(确保使用http://或https://)',  
+                        window.i18n.t('cw.invalid_url_detail'),  
                         'error'  
                     );  
                     return;  
@@ -358,7 +358,7 @@ class CreativeWorkshopManager {
         
         // 自动获取热搜  
         if (!topic && !referenceConfig) {  
-            window.app?.showNotification('正在自动获取热搜...', 'info');  
+            window.app?.showNotification(window.i18n.t('cw.fetching_hot'), 'info');  
             
             try {  
                 const response = await fetch('/api/hot-topics');  
@@ -368,7 +368,7 @@ class CreativeWorkshopManager {
                     this._hotSearchPlatform = data.platform || '';  
                     
                     if (!topic) {  
-                        window.app?.showNotification('获取热搜失败,请手动输入话题', 'warning');  
+                        window.app?.showNotification(window.i18n.t('cw.fetch_hot_failed_manual'), 'warning');  
                         return;  
                     }  
                     
@@ -378,11 +378,11 @@ class CreativeWorkshopManager {
                         this.currentTopic = topic;  
                     }  
                 } else {  
-                    throw new Error('获取热搜失败');  
+                    throw new Error(window.i18n.t('cw.fetch_hot_failed'));  
                 }  
             } catch (error) {  
                 console.error('获取热搜失败:', error);  
-                window.app?.showNotification('获取热搜失败,请手动输入话题', 'error');  
+                window.app?.showNotification(window.i18n.t('cw.fetch_hot_failed_manual'), 'error');  
                 return;  
             }  
         }  
@@ -397,8 +397,8 @@ class CreativeWorkshopManager {
         this.addToHistory(topic);  
         
         // 记录日志  
-        const taskMode = referenceConfig ? '借鉴模式' : '热搜模式';  
-        this.appendLog(`🚀 开始生成任务 (${taskMode})`, 'status', false, Date.now() / 1000);  
+        const taskMode = window.i18n.t(referenceConfig ? 'cw.mode_reference' : 'cw.mode_hot');  
+        this.appendLog(window.i18n.t('cw.task_started_log', { mode: taskMode }), 'status', false, Date.now() / 1000);  
         
         // 启动进度条  
         if (this.bottomProgress) {  
@@ -437,13 +437,11 @@ class CreativeWorkshopManager {
                 this.resetLogButton(); 
                 this.clearMessageQueue();  
                 
-                if (response.status === 400 && error.detail &&  
-                    (error.detail.includes('API KEY') ||  
-                    error.detail.includes('Model') ||  
-                    error.detail.includes('配置错误'))) {  
-                    this.showConfigErrorDialog(error.detail);  
+                // 配置错误由后端以 {message, panel} 结构返回,前端不再匹配中文子串
+                if (response.status === 400 && error.detail && error.detail.panel) {
+                    this.showConfigErrorDialog(error.detail.message, error.detail.panel);
                 } else {  
-                    window.app?.showNotification('生成失败: ' + (error.detail || '未知错误'), 'error');  
+                    window.app?.showNotification(window.i18n.t('cw.generate_failed', { msg: this.extractDetail(error) }), 'error');  
                 }  
                 
                 this.isGenerating = false;  
@@ -452,7 +450,7 @@ class CreativeWorkshopManager {
             }  
             
             const result = await response.json();  
-            window.app?.showNotification(result.message || '内容生成已开始', 'success');  
+            window.app?.showNotification(result.message || window.i18n.t('cw.generation_started'), 'success');  
             
             // 连接 WebSocket 接收实时日志  
             this.connectLogWebSocket();  
@@ -468,7 +466,7 @@ class CreativeWorkshopManager {
             this.resetLogButton();  // 重置日志按钮  
             this.clearMessageQueue();  
             
-            window.app?.showNotification('生成失败: ' + error.message, 'error');  
+            window.app?.showNotification(window.i18n.t('cw.generate_failed', { msg: error.message }), 'error');  
             this.isGenerating = false;  
             this.updateGenerationUI(false);  
         }  
@@ -495,12 +493,12 @@ class CreativeWorkshopManager {
         }      
     }    
   
-    showConfigErrorDialog(errorMessage) {      
+    showConfigErrorDialog(errorMessage, panel) {      
         const dialogHtml = `      
             <div class="modal-overlay" id="config-error-dialog">      
                 <div class="modal-content" style="max-width: 500px;">      
                     <div class="modal-header">      
-                        <h3>配置错误</h3>      
+                        <h3>${window.i18n.t('cw.config_error_title')}</h3>      
                         <button class="modal-close" onclick="window.creativeWorkshopManager.closeConfigErrorDialog()">×</button>      
                     </div>      
                     <div class="modal-body">      
@@ -516,8 +514,8 @@ class CreativeWorkshopManager {
                         </p>      
                     </div>      
                     <div class="modal-footer">      
-                        <button class="btn btn-secondary" onclick="window.creativeWorkshopManager.closeConfigErrorDialog()">取消</button>      
-                        <button class="btn btn-primary" onclick="window.creativeWorkshopManager.goToConfig('${this.getConfigPanelFromError(errorMessage)}')">前往配置</button>      
+                        <button class="btn btn-secondary" onclick="window.creativeWorkshopManager.closeConfigErrorDialog()">${window.i18n.t('dialog.cancel')}</button>      
+                        <button class="btn btn-primary" onclick="window.creativeWorkshopManager.goToConfig('${panel || 'api'}')">${window.i18n.t('cw.go_to_config')}</button>      
                     </div>      
                 </div>      
             </div>      
@@ -526,16 +524,11 @@ class CreativeWorkshopManager {
         document.body.insertAdjacentHTML('beforeend', dialogHtml);      
     }      
         
-    getConfigPanelFromError(errorMessage) {      
-        if (errorMessage.includes('微信公众号') || errorMessage.includes('appid') || errorMessage.includes('appsecret')) {      
-            return 'wechat';    
-        } else if (errorMessage.includes('API KEY') || errorMessage.includes('Model') || errorMessage.includes('api_key') || errorMessage.includes('model')) {      
-            return 'api';    
-        } else if (errorMessage.includes('图片生成')) {      
-            return 'img-api';    
-        } else {      
-            return 'api';    
-        }      
+    // 从后端错误对象中取出可显示的文案(兼容字符串与 {message,panel} 两种形态)
+    extractDetail(error) {
+        const detail = error && error.detail;
+        if (!detail) return window.i18n.t('cw.unknown_error');
+        return typeof detail === 'string' ? detail : (detail.message || window.i18n.t('cw.unknown_error'));
     }      
         
     goToConfig(panelId = 'api') {      
@@ -600,11 +593,11 @@ class CreativeWorkshopManager {
                     this.currentTopic = '';  
                 }  
                 
-                window.app?.showNotification(result.message || '已停止生成', 'info');  
+                window.app?.showNotification(result.message || window.i18n.t('cw.stopped'), 'info');  
             }  
         } catch (error) {  
             console.error('停止生成失败:', error);  
-            window.app?.showNotification('停止失败', 'error');  
+            window.app?.showNotification(window.i18n.t('cw.stop_failed'), 'error');  
         } finally {  
             this.isGenerating = false;  
             this.updateGenerationUI(false);  
@@ -616,7 +609,7 @@ class CreativeWorkshopManager {
         const btnIcon = document.querySelector('#log-progress-btn .btn-icon');  
         
         if (progressText) {  
-            progressText.textContent = '日志';  
+            progressText.textContent = window.i18n.t('progress.log');  
         }  
         
         if (btnIcon) {  
@@ -840,7 +833,7 @@ class CreativeWorkshopManager {
             
         } else if (data.type === 'failed') {  
             if (this.bottomProgress) {  
-                this.bottomProgress.showError(data.error || '未知错误');  
+                this.bottomProgress.showError(data.error || window.i18n.t('cw.unknown_error'));  
             }  
             
             // 【新增】重置日志按钮  
@@ -873,14 +866,14 @@ class CreativeWorkshopManager {
         this.stopStatusPolling();   
         
         if (data.type === 'completed') {  
-            window.app?.showNotification('生成完成', 'success');  
+            window.app?.showNotification(window.i18n.t('cw.generation_complete'), 'success');  
             if (window.articleManager && typeof window.articleManager.loadArticles === 'function') {  
                 window.articleManager.loadArticles();  
             }  
         } else if (data.type === 'failed') {  
-            window.app?.showNotification('生成失败: ' + (data.error || '未知错误'), 'error');  
+            window.app?.showNotification(window.i18n.t('cw.generate_failed', { msg: data.error || window.i18n.t('cw.unknown_error') }), 'error');  
         } else if (data.type === 'stopped') {  
-            window.app?.showNotification('生成已停止', 'info');  
+            window.app?.showNotification(window.i18n.t('cw.generation_stopped'), 'info');  
         }  
         
         this._hotSearchPlatform = '';  
@@ -1072,7 +1065,7 @@ class CreativeWorkshopManager {
         if (generateBtn) {  
             const btnText = generateBtn.querySelector('span');  
             if (btnText) {  
-                btnText.textContent = isGenerating ? '停止生成' : '开始生成';  
+                btnText.textContent = window.i18n.t(isGenerating ? 'cw.stop_generate' : 'cw.start_generate');  
             }  
               
             // 切换按钮样式  
@@ -1181,7 +1174,7 @@ class CreativeWorkshopManager {
             // 从后端获取日志文件  
             const response = await fetch('/api/logs/latest');  
             if (!response.ok) {  
-                throw new Error('获取日志失败');  
+                throw new Error(window.i18n.t('cw.get_logs_failed'));  
             }  
             
             const blob = await response.blob();  
@@ -1192,7 +1185,7 @@ class CreativeWorkshopManager {
                 const handle = await window.showSaveFilePicker({  
                     suggestedName: filename,  
                     types: [{  
-                        description: '日志文件',  
+                        description: window.i18n.t('cw.log_file'),  
                         accept: {'text/plain': ['.log']},  
                     }],  
                 });  
@@ -1201,7 +1194,7 @@ class CreativeWorkshopManager {
                 await writable.write(blob);  
                 await writable.close();  
                 
-                window.app?.showNotification('日志导出成功', 'success');  
+                window.app?.showNotification(window.i18n.t('cw.log_export_success'), 'success');  
             } else {  
                 // 降级方案:使用传统下载方式  
                 const url = window.URL.createObjectURL(blob);  
@@ -1213,10 +1206,10 @@ class CreativeWorkshopManager {
                 document.body.removeChild(a);  
                 window.URL.revokeObjectURL(url);  
                 
-                window.app?.showNotification('日志已下载到默认下载目录', 'success');  
+                window.app?.showNotification(window.i18n.t('cw.log_downloaded'), 'success');  
             }  
         } catch (error) {  
-            window.app?.showNotification('导出日志失败: ' + error.message, 'error');  
+            window.app?.showNotification(window.i18n.t('cw.log_export_failed', { msg: error.message }), 'error');  
         }  
     }
 }

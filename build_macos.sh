@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# 使用 Nuitka 构建 macOS 桌面应用（AIWriteX.app）
+#
+# 资源放置规则由 utils.get_res_path() 决定：Nuitka standalone 下走
+#   os.path.dirname(sys.executable) + relative_path
+# 在 .app 里 sys.executable 是 Contents/MacOS/AIWriteX，
+# 因此下面每个 --include-data-dir 的目标名必须与代码里请求的相对路径一致：
+#   get_res_path("web")            -> web/
+#   get_res_path("config/<file>")  -> config/
+#   get_res_path("templates")      -> templates/
+#   get_res_path("UI/icon.png")    -> UI/
+#
+# 用法: ./build_macos.sh   （需先 uv venv 并安装 requirements.txt 与 nuitka）
+set -euo pipefail
+
+cd "$(dirname "$0")"
+PY="${PY:-.venv/bin/python}"
+OUT="${OUT:-make_app}"          # 已在 .gitignore 中
+
+[ -x "$PY" ] || { echo "找不到 $PY，请先创建虚拟环境并安装依赖"; exit 1; }
+
+echo "==> 清理旧产物"
+rm -rf "$OUT/main.dist" "$OUT/main.build" "$OUT/AIWriteX.app"
+mkdir -p "$OUT"
+
+echo "==> 开始编译（Nuitka standalone，耗时较长）"
+"$PY" -m nuitka \
+  --standalone \
+  --macos-create-app-bundle \
+  --macos-app-name=AIWriteX \
+  --macos-app-icon=src/ai_write_x/assets/UI/icon.icns \
+  --company-name="墨智工坊" \
+  --product-name=AIWriteX \
+  --output-dir="$OUT" \
+  --output-filename=AIWriteX \
+  --assume-yes-for-downloads \
+  --static-libpython=no \
+  --remove-output \
+  --include-data-dir=src/ai_write_x/web=web \
+  --include-data-dir=src/ai_write_x/config=config \
+  --include-data-dir=knowledge/templates=templates \
+  --include-data-dir=src/ai_write_x/assets/UI=UI \
+  --include-package=src.ai_write_x \
+  --include-package=crewai \
+  --include-package=aiforge \
+  --include-package=litellm \
+  --enable-plugin=pywebview \
+  --include-package=uvicorn \
+  --include-package=fastapi \
+  --include-package-data=litellm \
+  --include-package-data=crewai \
+  --include-package-data=aiforge \
+  --nofollow-import-to=pytest \
+  --nofollow-import-to=tests \
+  main.py
+
+APP="$OUT/main.app"
+
+# Nuitka 把 crewai 的模块编译进了二进制，磁盘上不再有 crewai/utilities/ 目录；
+# 而 crewai/utilities/i18n.py 是用 "<自身目录>/../translations/en.json" 去读文件的。
+# POSIX 解析 a/b/../c 时要求 b 真实存在，否则 open() 直接 ENOENT，应用启动即崩。
+# 这里把这类"只用于路径拼接、本身无数据文件"的目录补回来。
+echo "==> 补建仅用于相对路径解析的空目录"
+for d in crewai/utilities; do
+  mkdir -p "$APP/Contents/MacOS/$d"
+  echo "    $d"
+done
+
+echo "==> 重命名为 AIWriteX.app"
+rm -rf "$OUT/AIWriteX.app"
+mv "$APP" "$OUT/AIWriteX.app"
+
+echo "==> 构建完成: $OUT/AIWriteX.app"
+du -sh "$OUT/AIWriteX.app"
+
+# ---------------------------------------------------------------------------
+# 环境注意事项（都是实际构建时踩到的）
+#
+# 1) Python 3.12：pyproject 要求 >=3.10,<3.13。3.13 装不上 crewai。
+#      uv venv --python 3.12 .venv
+#
+#    依赖直接按 requirements.txt 装即可，无需再手工打补丁：
+#      uv pip install -r requirements.txt
+#      uv pip install nuitka
+#    （peewee 与 setuptools 两处约束此前是错的，已在 requirements.txt 中修正：
+#      peewee 需锁 <4——aiforge 依赖 3.x 的 playhouse.sqlite_ext.SqliteExtDatabase；
+#      setuptools 需 >=68——65.5.0 在 Python 3.12 下 pkg_resources 会崩。）
+#
+# 2) --static-libpython=no：Homebrew Python 不提供静态 libpython。
+#
+# 3) 不要加 --include-package=webview：会与 Nuitka 内置的 pywebview 插件
+#    对 webview.platforms.android 的处理冲突，报 "Conflict between user and
+#    plugin decision"。该插件默认就是启用的。
+#
+# 4) 构建后需补建 crewai/utilities 空目录（脚本已自动处理），
+#    原因见上面"补建仅用于相对路径解析的空目录"一段。
+# ---------------------------------------------------------------------------

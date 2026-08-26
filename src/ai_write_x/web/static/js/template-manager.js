@@ -140,9 +140,9 @@ class TemplateManager {
             await this.loadTemplates(this.currentCategory);  
             this.renderCategoryTree();  
             this.renderTemplateGrid();  
-            window.app?.showNotification('已刷新模板列表', 'success');  
+            window.app?.showNotification(window.i18n.t('tpl.refreshed'), 'success');  
         } catch (error) {  
-            window.app?.showNotification('刷新失败: ' + error.message, 'error');  
+            window.app?.showNotification(window.i18n.t('err.refresh_failed', { msg: error.message }), 'error');  
         }  
     }
 
@@ -158,7 +158,7 @@ class TemplateManager {
                         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>  
                     </svg>
                 </span>    
-                <span class="tree-name" title="全部模板">全部模板</span>    
+                <span class="tree-name" title="${window.i18n.t('tpl.all_templates')}">${window.i18n.t('tpl.all_templates')}</span>    
                 <span class="item-count">${allCount}</span>    
             </div>    
             ${this.categories.map(cat => `    
@@ -239,7 +239,7 @@ class TemplateManager {
     }
 
     showMoveConfirmDialog(sourcePath, templateName, sourceCategory, targetCategory) {  
-        const message = `确认将模板 "${templateName}" 从 "${sourceCategory}" 移动到 "${targetCategory}"?`;  
+        const message = window.i18n.t('tpl.confirm_move', { name: templateName, from: sourceCategory, to: targetCategory });  
         
         window.dialogManager.showConfirm(  
             message,  
@@ -261,13 +261,13 @@ class TemplateManager {
                         this.renderCategoryTree();  
                         this.renderTemplateGrid();  
                         
-                        window.app?.showNotification(`模板已移动到 "${targetCategory}"`, 'success');  
+                        window.app?.showNotification(window.i18n.t('tpl.moved_to', { to: targetCategory }), 'success');  
                     } else {  
                         const error = await response.json();  
-                        window.dialogManager.showAlert('移动失败: ' + (error.detail || '未知错误'), 'error');  
+                        window.dialogManager.showAlert(window.i18n.t('err.move_failed', { msg: error.detail || window.i18n.t('common.unknown_error') }), 'error');  
                     }  
                 } catch (error) {  
-                    window.dialogManager.showAlert('移动失败: ' + error.message, 'error');  
+                    window.dialogManager.showAlert(window.i18n.t('err.move_failed', { msg: error.message }), 'error');  
                 }  
             }  
         );  
@@ -294,7 +294,7 @@ class TemplateManager {
         // 编辑选项    
         const editItem = document.createElement('div');    
         editItem.className = 'context-menu-item';    
-        editItem.innerHTML = '<span>✏️</span> 编辑分类';    
+        editItem.innerHTML = `<span>✏️</span> ${window.i18n.t('tpl.edit_category')}`;    
         editItem.addEventListener('click', () => {    
             menu.remove();    
             this.editCategory(categoryName);    
@@ -303,7 +303,7 @@ class TemplateManager {
         // 删除选项    
         const deleteItem = document.createElement('div');    
         deleteItem.className = 'context-menu-item context-menu-item-danger';    
-        deleteItem.innerHTML = '<span>🗑️</span> 删除分类';    
+        deleteItem.innerHTML = `<span>🗑️</span> ${window.i18n.t('tpl.delete_category')}`;    
         deleteItem.addEventListener('click', () => {    
             menu.remove();    
             this.deleteCategory(categoryName);    
@@ -325,8 +325,8 @@ class TemplateManager {
 
     async editCategory(oldCategoryName) {    
         window.dialogManager.showInput(    
-            '编辑分类',    
-            '请输入新的分类名称:',    
+            window.i18n.t('tpl.edit_category'),    
+            window.i18n.t('tpl.enter_new_category_name'),    
             oldCategoryName,    
             async (newName) => {    
                 if (!newName || newName === oldCategoryName) {    
@@ -335,7 +335,7 @@ class TemplateManager {
                 
                 // 检查新名称是否已存在    
                 if (this.categories.some(cat => cat.name === newName)) {    
-                    window.dialogManager.showAlert('分类名称已存在', 'error');    
+                    window.dialogManager.showAlert(window.i18n.t('tpl.category_exists'), 'error');    
                     return;    
                 }    
                 
@@ -358,16 +358,16 @@ class TemplateManager {
                             await this.selectCategory(newName);    
                         }    
                         
-                        window.app?.showNotification('分类已重命名', 'success');    
+                        window.app?.showNotification(window.i18n.t('tpl.category_renamed'), 'success');    
                     } else {    
                         const error = await response.json();  
                         const errorMessage = typeof error.detail === 'string'   
                             ? error.detail   
                             : JSON.stringify(error.detail);  
-                        window.dialogManager.showAlert('重命名失败: ' + errorMessage, 'error');    
+                        window.dialogManager.showAlert(window.i18n.t('err.rename_failed', { msg: errorMessage }), 'error');    
                     }    
                 } catch (error) {    
-                    window.dialogManager.showAlert('重命名失败: ' + error.message, 'error');    
+                    window.dialogManager.showAlert(window.i18n.t('err.rename_failed', { msg: error.message }), 'error');    
                 }    
             }    
         );    
@@ -378,8 +378,8 @@ class TemplateManager {
         const templateCount = category ? category.template_count : 0;    
         
         const message = templateCount > 0    
-            ? `确认删除分类 "${categoryName}" 及其包含的 ${templateCount} 个模板?\n\n此操作不可撤销!`    
-            : `确认删除空分类 "${categoryName}"?`;    
+            ? window.i18n.t('tpl.confirm_delete_category', { name: categoryName, count: templateCount })    
+            : window.i18n.t('tpl.confirm_delete_empty_category', { name: categoryName });    
         
         window.dialogManager.showConfirm(    
             message,    
@@ -400,16 +400,16 @@ class TemplateManager {
                             await this.selectCategory(null);    
                         }    
                         
-                        window.app?.showNotification('分类已删除', 'success');    
+                        window.app?.showNotification(window.i18n.t('tpl.category_deleted'), 'success');    
                     } else {    
                         const error = await response.json();  
                         const errorMessage = typeof error.detail === 'string'   
                             ? error.detail   
                             : JSON.stringify(error.detail);  
-                        window.dialogManager.showAlert('删除失败: ' + errorMessage, 'error');    
+                        window.dialogManager.showAlert(window.i18n.t('err.delete_failed', { msg: errorMessage }), 'error');    
                     }    
                 } catch (error) {    
-                    window.dialogManager.showAlert('删除失败: ' + error.message, 'error');    
+                    window.dialogManager.showAlert(window.i18n.t('err.delete_failed', { msg: error.message }), 'error');    
                 }    
             }    
         );    
@@ -440,9 +440,9 @@ class TemplateManager {
                     await fetch('/api/config/', { method: 'POST' });  
                     
                     if (newCategoryName) {  
-                        window.app?.showNotification(`配置已自动更新为新分类: ${newCategoryName}`, 'info');  
+                        window.app?.showNotification(window.i18n.t('tpl.config_updated_category', { name: newCategoryName }), 'info');  
                     } else {  
-                        window.app?.showNotification('配置中的分类设置已清空', 'info');  
+                        window.app?.showNotification(window.i18n.t('tpl.config_category_cleared'), 'info');  
                     }  
                 }  
             }  
@@ -484,7 +484,7 @@ class TemplateManager {
         grid.className = this.currentLayout === 'grid' ? 'content-grid' : 'content-grid list-view';  
         
         if (this.templates.length === 0) {  
-            grid.innerHTML = '<div class="empty-state">暂无模板</div>';  
+            grid.innerHTML = `<div class="empty-state">${window.i18n.t('tpl.empty')}</div>`;  
             return;  
         }  
         
@@ -522,19 +522,19 @@ class TemplateManager {
             const today = new Date();  
             const diffDays = Math.floor((today - date) / (1000 * 60 * 60 * 24));  
             
-            if (diffDays === 0) return '今天';  
-            if (diffDays === 1) return '昨天';  
-            if (diffDays < 7) return `${diffDays}天前`;  
+            if (diffDays === 0) return window.i18n.t('common.today');  
+            if (diffDays === 1) return window.i18n.t('common.yesterday');  
+            if (diffDays < 7) return window.i18n.t('common.days_ago', { n: diffDays });  
             return date.toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' });  
         };  
         
         card.innerHTML = `  
             <div class="card-preview">  
-                <iframe sandbox="allow-same-origin allow-scripts"   
+                <iframe sandbox="allow-scripts"   
                         loading="lazy"  
                         data-template-path="${template.path}"  
                         data-loaded="false"></iframe>  
-                <div class="preview-loading">加载中...</div>  
+                <div class="preview-loading">${window.i18n.t('common.loading')}</div>  
             </div>  
             <div class="card-content">  
                 <h4 class="card-title" title="${template.name}">${template.name}</h4>  
@@ -547,25 +547,25 @@ class TemplateManager {
                 </div>  
             </div>  
             <div class="card-actions">  
-                <button class="btn-icon" data-action="edit" title="编辑">  
+                <button class="btn-icon" data-action="edit" title="${window.i18n.t('common.edit')}">  
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>  
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>  
                     </svg>  
                 </button>  
-                <button class="btn-icon" data-action="rename" title="重命名">  
+                <button class="btn-icon" data-action="rename" title="${window.i18n.t('common.rename')}">  
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                         <path d="M4 7h16M4 12h10M4 17h10"/>  
                         <path d="M20 17l-4-4 4-4"/>  
                     </svg>  
                 </button>  
-                <button class="btn-icon" data-action="copy" title="复制">  
+                <button class="btn-icon" data-action="copy" title="${window.i18n.t('common.copy')}">  
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>  
                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>  
                     </svg>  
                 </button>  
-                <button class="btn-icon" data-action="delete" title="删除">  
+                <button class="btn-icon" data-action="delete" title="${window.i18n.t('common.delete')}">  
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor">  
                         <polyline points="3 6 5 6 21 6"/>  
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>  
@@ -719,8 +719,8 @@ class TemplateManager {
             iframe.dataset.loaded = 'true';    
             if (loadingEl) loadingEl.style.display = 'none';    
         } catch (error) {    
-            iframe.srcdoc = '<div style="padding: 20px; color: red;">加载失败</div>';    
-            if (loadingEl) loadingEl.textContent = '加载失败';    
+            iframe.srcdoc = `<div style="padding: 20px; color: red;">${window.i18n.t('common.load_failed')}</div>`;    
+            if (loadingEl) loadingEl.textContent = window.i18n.t('common.load_failed');    
         }    
     }
   
@@ -808,8 +808,8 @@ class TemplateManager {
     // 重命名方法  
     async renameTemplate(template) {  
         window.dialogManager.showInput(  
-            '重命名模板',  
-            '请输入新的模板名称:',  
+            window.i18n.t('tpl.rename_template'),  
+            window.i18n.t('tpl.enter_new_template_name'),  
             template.name,  
             async (newName) => {  
                 if (!newName || newName === template.name) return;  
@@ -829,13 +829,13 @@ class TemplateManager {
                         await this.loadTemplates(this.currentCategory);  
                         this.renderCategoryTree();  
                         this.renderTemplateGrid();  
-                        window.app?.showNotification('模板已重命名', 'success');  
+                        window.app?.showNotification(window.i18n.t('tpl.template_renamed'), 'success');  
                     } else {  
                         const error = await response.json();  
-                        window.dialogManager.showAlert('重命名失败: ' + (error.detail || '未知错误'), 'error');  
+                        window.dialogManager.showAlert(window.i18n.t('err.rename_failed', { msg: error.detail || window.i18n.t('common.unknown_error') }), 'error');  
                     }  
                 } catch (error) {  
-                    window.dialogManager.showAlert('重命名失败: ' + error.message, 'error');  
+                    window.dialogManager.showAlert(window.i18n.t('err.rename_failed', { msg: error.message }), 'error');  
                 }  
             }  
         );  
@@ -850,7 +850,7 @@ class TemplateManager {
                 }  
             })  
             .catch(err => {  
-                window.dialogManager.showAlert('预览失败: ' + err.message, 'error');  
+                window.dialogManager.showAlert(window.i18n.t('err.preview_failed', { msg: err.message }), 'error');  
             });  
     }  
   
@@ -862,14 +862,14 @@ class TemplateManager {
             }  
             await window.contentEditorDialog.open(template.path, template.name, 'template'); 
         } catch (error) {  
-            window.dialogManager?.showAlert('打开编辑器失败: ' + error.message, 'error');  
+            window.dialogManager?.showAlert(window.i18n.t('err.open_editor_failed', { msg: error.message }), 'error');  
         }  
     }
   
     async copyTemplate(template) {    
         window.dialogManager.showInput(    
-            '复制模板',    
-            '请输入新模板名称:',    
+            window.i18n.t('tpl.copy_template'),    
+            window.i18n.t('tpl.enter_copy_name'),    
             template.name + '_copy',    
             async (newName) => {    
                 if (!newName) return;    
@@ -890,13 +890,13 @@ class TemplateManager {
                         await this.loadTemplates(this.currentCategory);    
                         this.renderCategoryTree();  // 添加这一行  
                         this.renderTemplateGrid();    
-                        window.app?.showNotification('模板已复制', 'success');    
+                        window.app?.showNotification(window.i18n.t('tpl.template_copied'), 'success');    
                     } else {    
                         const error = await response.json();    
-                        window.dialogManager.showAlert('复制失败: ' + (error.detail || '未知错误'), 'error');    
+                        window.dialogManager.showAlert(window.i18n.t('err.copy_failed', { msg: error.detail || window.i18n.t('common.unknown_error') }), 'error');    
                     }    
                 } catch (error) {    
-                    window.dialogManager.showAlert('复制失败: ' + error.message, 'error');    
+                    window.dialogManager.showAlert(window.i18n.t('err.copy_failed', { msg: error.message }), 'error');    
                 }    
             }    
         );    
@@ -904,7 +904,7 @@ class TemplateManager {
   
     async deleteTemplate(template) {  
         window.dialogManager.showConfirm(  
-            `确认删除模板"${template.name}"?`,  
+            window.i18n.t('tpl.confirm_delete_template', { name: template.name }),  
             async () => {  
                 try {  
                     const response = await fetch(`/api/templates/${encodeURIComponent(template.path)}`, {  
@@ -916,13 +916,13 @@ class TemplateManager {
                         await this.loadTemplates(this.currentCategory);  
                         this.renderCategoryTree();  
                         this.renderTemplateGrid();  
-                        window.app?.showNotification('模板已删除', 'success');  
+                        window.app?.showNotification(window.i18n.t('tpl.template_deleted'), 'success');  
                     } else {  
                         const error = await response.json();  
-                        window.dialogManager.showAlert('删除失败: ' + (error.detail || '未知错误'), 'error');  
+                        window.dialogManager.showAlert(window.i18n.t('err.delete_failed', { msg: error.detail || window.i18n.t('common.unknown_error') }), 'error');  
                     }  
                 } catch (error) {  
-                    window.dialogManager.showAlert('删除失败: ' + error.message, 'error');  
+                    window.dialogManager.showAlert(window.i18n.t('err.delete_failed', { msg: error.message }), 'error');  
                 }  
             }  
         );  
@@ -961,12 +961,12 @@ class TemplateManager {
             addTemplateBtn.disabled = true;  
             addTemplateBtn.style.opacity = '0.5';  
             addTemplateBtn.style.cursor = 'not-allowed';  
-            addTemplateBtn.title = '请先选择一个分类';  
+            addTemplateBtn.title = window.i18n.t('tpl.select_category_first');  
         } else {  
             addTemplateBtn.disabled = false;  
             addTemplateBtn.style.opacity = '1';  
             addTemplateBtn.style.cursor = 'pointer';  
-            addTemplateBtn.title = '新建模板';  
+            addTemplateBtn.title = window.i18n.t('tpl.new_template');  
         }  
     }
 
@@ -988,13 +988,13 @@ class TemplateManager {
     async showCreateTemplateDialog() {  
         // 如果没有选中分类,不应该执行到这里(按钮已禁用)  
         if (!this.currentCategory) {  
-            window.dialogManager.showAlert('请先选择一个分类', 'error');  
+            window.dialogManager.showAlert(window.i18n.t('tpl.select_category_first'), 'error');  
             return;  
         }  
         
         window.dialogManager.showInput(  
-            '新建模板',  
-            '请输入模板名称:',
+            window.i18n.t('tpl.new_template'),  
+            window.i18n.t('tpl.enter_template_name'),
             '',  
             async (name) => {  
                 if (!name) return;  
@@ -1015,13 +1015,13 @@ class TemplateManager {
                         await this.loadTemplates(this.currentCategory);  
                         this.renderCategoryTree();  
                         this.renderTemplateGrid();  
-                        window.app?.showNotification('模板已创建', 'success');  
+                        window.app?.showNotification(window.i18n.t('tpl.template_created'), 'success');  
                     } else {  
                         const error = await response.json();  
-                        window.dialogManager.showAlert('创建失败: ' + error.detail, 'error');  
+                        window.dialogManager.showAlert(window.i18n.t('err.create_failed', { msg: error.detail }), 'error');  
                     }  
                 } catch (error) {  
-                    window.dialogManager.showAlert('创建失败: ' + error.message, 'error');  
+                    window.dialogManager.showAlert(window.i18n.t('err.create_failed', { msg: error.message }), 'error');  
                 }  
             }  
         );  
@@ -1029,12 +1029,12 @@ class TemplateManager {
   
     async showCreateCategoryDialog() {  
         window.dialogManager.showInput(  
-            '新建分类',  
-            '请输入分类名称:',  
+            window.i18n.t('tpl.new_category'),  
+            window.i18n.t('tpl.enter_category_name'),  
             '',  
             async (name) => {  
                 if (!name) {  
-                    window.dialogManager.showAlert('分类名称不能为空', 'error');  
+                    window.dialogManager.showAlert(window.i18n.t('tpl.category_name_empty'), 'error');  
                     return;  
                 }  
                 
@@ -1052,13 +1052,13 @@ class TemplateManager {
                         // 自动切换到新创建的分类  
                         await this.selectCategory(name);  
                         
-                        window.app?.showNotification('分类已创建', 'success');  
+                        window.app?.showNotification(window.i18n.t('tpl.category_created'), 'success');  
                     } else {  
                         const error = await response.json();  
-                        window.dialogManager.showAlert('创建失败: ' + error.detail, 'error');  
+                        window.dialogManager.showAlert(window.i18n.t('err.create_failed', { msg: error.detail }), 'error');  
                     }  
                 } catch (error) {  
-                    window.dialogManager.showAlert('创建失败: ' + error.message, 'error');  
+                    window.dialogManager.showAlert(window.i18n.t('err.create_failed', { msg: error.message }), 'error');  
                 }  
             }  
         );  

@@ -3,8 +3,8 @@
         <!-- 左侧分类树 -->      
         <aside class="manager-sidebar">      
             <div class="sidebar-header">      
-                <h3>模板分类</h3>      
-                <button class="btn-icon" id="add-category" title="新建分类">      
+                <h3 data-i18n="tpl.categories">模板分类</h3>      
+                <button class="btn-icon" id="add-category" title="新建分类" data-i18n-title="tpl.new_category">      
                     <svg viewBox="0 0 24 24" width="16" height="16">      
                         <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2"/>      
                     </svg>      
@@ -21,12 +21,12 @@
                         <circle cx="11" cy="11" r="8"/>      
                         <path d="m21 21-4.35-4.35"/>      
                     </svg>      
-                    <input type="text" id="template-search" placeholder="搜索模板...">      
+                    <input type="text" id="template-search" placeholder="搜索模板..." data-i18n-placeholder="tpl.search_placeholder">      
                 </div>     
                       
                 <div class="toolbar-actions">      
                     <div class="view-toggle">      
-                        <button class="view-btn active" data-layout="grid" title="网格视图">      
+                        <button class="view-btn active" data-layout="grid" title="网格视图" data-i18n-title="tpl.grid_view">      
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
                                 <rect x="3" y="3" width="7" height="7"/>      
                                 <rect x="14" y="3" width="7" height="7"/>      
@@ -34,7 +34,7 @@
                                 <rect x="14" y="14" width="7" height="7"/>      
                             </svg>      
                         </button>      
-                        <button class="view-btn" data-layout="list" title="列表视图">      
+                        <button class="view-btn" data-layout="list" title="列表视图" data-i18n-title="tpl.list_view">      
                             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor">      
                                 <line x1="8" y1="6" x2="21" y2="6"/>      
                                 <line x1="8" y1="12" x2="21" y2="12"/>      
@@ -50,7 +50,7 @@
                         <svg viewBox="0 0 24 24" width="16" height="16">      
                             <path d="M12 5v14m-7-7h14" stroke="currentColor" stroke-width="2"/>      
                         </svg>      
-                        新建模板      
+                        <span data-i18n="tpl.new_template">新建模板</span>      
                     </button>      
                 </div>      
             </div>      

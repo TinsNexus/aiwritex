@@ -1,5 +1,6 @@
 from typing import Any, Dict
 import os
+import re
 import yaml
 import threading
 import tomlkit
@@ -52,6 +53,11 @@ class Config:
         self.config: Dict[Any, Any] = {}
         self.aiforge_config: Dict[Any, Any] = {}
         self.error_message = None
+        # 结构化的配置错误信息：供界面决定跳转到哪个配置面板并做多语言展示。
+        # error_message 保持中文原文，供 CLI 日志使用。
+        self.error_panel = ""
+        self.error_message_key = ""
+        self.error_params = {}
         self.config_path = self.__get_config_path()
         self.config_aiforge_path = self.__get_config_path("aiforge.toml")
         self.config_dimensional_path = self.__get_config_path("dimensional_creative_config.yaml")
@@ -1746,18 +1752,58 @@ class Config:
             ]
 
     def __get_config_path(self, file_name="config.yaml"):
-        """获取配置文件路径并确保文件存在"""
+        """获取配置文件路径并确保文件存在
 
+        实际配置一律读写用户数据目录；源码树/打包资源中的同名文件只是默认模板，
+        仅在用户目录尚无该文件时复制过去（copy_file 遇到已存在的目标不会覆盖）。
+        这样开发模式下填入的密钥不会再写回被 Git 跟踪的文件。
+        """
         config_path = str(PathManager.get_config_path(file_name))
 
         if utils.get_is_release_ver():
-            # 发布模式：使用PathManager获取跨平台可写路径
-            # 将资源文件复制到配置目录下（保留原有逻辑）
-            res_config_path = utils.get_res_path(f"config/{file_name}")
-            if os.path.exists(res_config_path):
-                utils.copy_file(res_config_path, config_path)
+            # 发布模式：模板来自打包进来的资源目录
+            seed_path = utils.get_res_path(f"config/{file_name}")
+        else:
+            # 开发模式：模板就是源码树中的同名文件
+            seed_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), file_name)
+
+        # 首次运行时把模板复制到用户目录；已存在则保留用户自己的配置
+        if os.path.exists(seed_path) and not os.path.exists(config_path):
+            utils.copy_file(seed_path, config_path)
+
+        if not utils.get_is_release_ver():
+            self.__warn_if_seed_has_secrets(seed_path)
 
         return config_path
+
+    @staticmethod
+    def __warn_if_seed_has_secrets(seed_path):
+        """提醒清理源码树中残留的密钥
+
+        本次改动之前，开发模式会把密钥直接写进源码树里被 Git 跟踪的配置文件。
+        路径修正只能防止今后再写入，已经落在工作区里的旧密钥仍需手动清除，
+        否则一次 `git commit -a` 依旧会泄露。
+        """
+        if not os.path.exists(seed_path):
+            return
+
+        try:
+            content = open(seed_path, "r", encoding="utf-8").read()
+        except OSError:
+            return
+
+        # 只看是否存在"非空的密钥字段"，不打印任何取值
+        has_secret = re.search(
+            r"^\s*-?\s*(api_key|appsecret|app_secret)\s*[:=]\s*(?!\s*(\[\s*\]|\"\"|''|$))\S",
+            content,
+            re.MULTILINE,
+        )
+        if has_secret:
+            log.print_log(
+                f"检测到源码目录下的配置模板 {os.path.basename(seed_path)} 中似乎残留密钥。"
+                "配置现已改存到用户数据目录，请清空该模板文件中的密钥后再提交，避免推送到公开仓库。",
+                "warning",
+            )
 
     def get_sendall_by_appid(self, target_appid):
         for cred in self.config["wechat"]["credentials"]:
@@ -1878,8 +1924,17 @@ class Config:
                 raise ValueError("配置未加载")
             return self.config
 
+    def __set_error(self, panel, message_key, **params):
+        """记录结构化错误信息：界面据此跳转配置面板并按当前语言展示文案"""
+        self.error_panel = panel
+        self.error_message_key = message_key
+        self.error_params = params
+
     def validate_config(self):
         """验证配置,仅在 CrewAI 执行时调用"""
+        self.error_panel = ""
+        self.error_message_key = ""
+        self.error_params = {}
         try:
             # 获取 API 配置
             api_type = self.api_type
@@ -1889,34 +1944,40 @@ class Config:
             api_keys = api_config.get("api_key", [])
             if not api_keys or not any(api_keys):
                 self.error_message = f"未配置API KEY，请打开配置填写{api_type}的api_key"
+                self.__set_error("api", "cfgerr.no_api_key", api_type=api_type)
                 return False
 
             # 检查 key_index 是否有效
             key_index = api_config.get("key_index", 0)
             if key_index >= len(api_keys):
                 self.error_message = f"{api_type}的key_index({key_index})超出范围，api_key列表只有{len(api_keys)}个元素"  # noqa 501
+                self.__set_error("api", "cfgerr.key_index_range", api_type=api_type, index=key_index, count=len(api_keys))  # noqa 501
                 return False
 
             # 检查选中的 api_key 是否为空
             if not api_keys[key_index]:
                 self.error_message = f"未配置API KEY，请打开配置填写{api_type}的api_key"
+                self.__set_error("api", "cfgerr.no_api_key", api_type=api_type)
                 return False
 
             # 检查 model 列表
             models = api_config.get("model", [])
             if not models:
                 self.error_message = f"未配置Model，请打开配置填写{api_type}的model"
+                self.__set_error("api", "cfgerr.no_model", api_type=api_type)
                 return False
 
             # 检查 model_index 是否有效
             model_index = api_config.get("model_index", 0)
             if model_index >= len(models):
                 self.error_message = f"{api_type}的model_index({model_index})超出范围，model列表只有{len(models)}个元素"  # noqa 501
+                self.__set_error("api", "cfgerr.model_index_range", api_type=api_type, index=model_index, count=len(models))  # noqa 501
                 return False
 
             # 检查选中的 model 是否为空
             if not models[model_index]:
                 self.error_message = f"未配置Model，请打开配置填写{api_type}的model"
+                self.__set_error("api", "cfgerr.no_model", api_type=api_type)
                 return False
 
             # 检查图片生成配置
@@ -1933,6 +1994,7 @@ class Config:
                     self.error_message = (
                         f"未配置图片生成模型的API KEY，请打开配置填写{self.img_api_type}的api_key"
                     )
+                    self.__set_error("img-api", "cfgerr.no_img_api_key", api_type=self.img_api_type)
                     return False
 
                 img_models = img_api_config.get("model", [])
@@ -1946,6 +2008,7 @@ class Config:
                     self.error_message = (
                         f"未配置图片生成的模型，请打开配置填写{self.img_api_type}的model"
                     )
+                    self.__set_error("img-api", "cfgerr.no_img_model", api_type=self.img_api_type)
                     return False
 
             # 检查自动发布配置
@@ -1955,6 +2018,7 @@ class Config:
                 )
                 if not valid_cred:
                     self.error_message = "【自动发布】时，需配置微信公众号appid和appsecret"
+                    self.__set_error("wechat", "cfgerr.wechat_credentials")
                     return False
 
             # 检查 AIForge 配置
@@ -1965,6 +2029,7 @@ class Config:
 
         except Exception as e:
             self.error_message = f"配置验证失败: {e}"
+            self.__set_error("api", "cfgerr.validate_failed", msg=str(e))
             return False
 
     def reload_config(self):

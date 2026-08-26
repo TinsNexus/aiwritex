@@ -1,40 +1,44 @@
 <!DOCTYPE html>  
-<html lang="zh-CN">  
-<head>  
-    <meta charset="UTF-8">  
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
-    <title>AIWriteX - 智能内容创作平台</title>  
-      
-    <link rel="icon" href="data:," />  
+<html lang="{{ html_lang }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIWriteX</title>
+
+    <!-- 语言包：同步注入并最先加载，确保后续脚本可直接使用 window.i18n -->
+    <script>window.__I18N__ = {{ i18n_bootstrap | safe }};</script>
+    <script src="/static/js/i18n.js?v={{ version }}"></script>
+
+    <link rel="icon" href="data:," />
       
     <!-- 核心样式文件 -->  
-    <link rel="stylesheet" href="/static/css/main.css">  
+    <link rel="stylesheet" href="/static/css/main.css?v={{ version }}">  
       
     <!-- 主题样式文件 -->  
-    <link rel="stylesheet" href="/static/css/themes/light-theme.css">  
-    <link rel="stylesheet" href="/static/css/themes/dark-theme.css">  
+    <link rel="stylesheet" href="/static/css/themes/light-theme.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/themes/dark-theme.css?v={{ version }}">  
       
     <!-- 组件样式文件 -->  
-    <link rel="stylesheet" href="/static/css/components/header.css">  
-    <link rel="stylesheet" href="/static/css/components/sidebar.css">  
-    <link rel="stylesheet" href="/static/css/components/footer.css">  
-    <link rel="stylesheet" href="/static/css/components/navigation.css">  
-    <link rel="stylesheet" href="/static/css/components/buttons.css">  
-    <link rel="stylesheet" href="/static/css/components/forms.css">  
-    <link rel="stylesheet" href="/static/css/components/notifications.css">  
-    <link rel="stylesheet" href="/static/css/components/modals.css">  
-    <link rel="stylesheet" href="/static/css/components/preview-panel.css">  
-    <link rel="stylesheet" href="/static/css/components/content-editor.css">  
+    <link rel="stylesheet" href="/static/css/components/header.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/components/sidebar.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/components/footer.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/components/navigation.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/components/buttons.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/components/forms.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/components/notifications.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/components/modals.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/components/preview-panel.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/components/content-editor.css?v={{ version }}">  
     
     <link rel="stylesheet" href="/static/lib/grapesjs/css/grapes.min.css"> 
     <link rel="stylesheet" href="/static/lib/grapesjs/css/grapesjs-preset-webpage.min.css">
 
     <!-- 视图样式文件  -->  
-    <link rel="stylesheet" href="/static/css/views/shared-manager.css">  
-    <link rel="stylesheet" href="/static/css/views/creative-workshop.css">  
-    <link rel="stylesheet" href="/static/css/views/article-manager.css">  
-    <link rel="stylesheet" href="/static/css/views/template-manager.css">  
-    <link rel="stylesheet" href="/static/css/views/config-manager.css">  
+    <link rel="stylesheet" href="/static/css/views/shared-manager.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/views/creative-workshop.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/views/article-manager.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/views/template-manager.css?v={{ version }}">  
+    <link rel="stylesheet" href="/static/css/views/config-manager.css?v={{ version }}">  
 </head>  
   
 <body class="window-mode-standard" data-window-mode="standard">  
@@ -66,23 +70,24 @@
     <!-- 脚本加载 -->
     <script src="/static/lib/grapesjs/grapes.min.js"></script>  
     <script src="/static/lib/grapesjs/plugins/grapesjs-preset-webpage.min.js"></script>
-    <script src="/static/js/image-designer.js"></script>
+    <script src="/static/js/image-designer.js?v={{ version }}"></script>
  
     <script src="/static/lib/marked/marked.min.js"></script>
-    <script src="/static/js/markdown-renderer.js"></script> 
+    <script src="/static/js/markdown-renderer.js?v={{ version }}"></script> 
     <script src="/static/lib/monaco/vs/loader.js"></script>  
-    <script src="/static/js/dialog.js"></script>  
-    <script src="/static/js/preview-panel.js"></script>
-    <script src="/static/js/update-checker.js"></script>
-    <script src="/static/js/footer-marquee.js"></script>  
-    <script src="/static/js/main.js"></script>  
-    <script src="/static/js/progress-manager.js"></script> 
-    <script src="/static/js/creative-workshop.js"></script> 
-    <script src="/static/js/article-manager.js"></script>  
-    <script src="/static/js/template-manager.js"></script>  
-    <script src="/static/js/content-editor.js"></script>  
-    <script src="/static/js/config-manager.js"></script>  
-    <script src="/static/js/theme-manager.js"></script>  
-    <script src="/static/js/window-modes.js"></script>  
+    <script src="/static/js/dialog.js?v={{ version }}"></script>  
+    <script src="/static/js/preview-panel.js?v={{ version }}"></script>
+    <script src="/static/js/update-checker.js?v={{ version }}"></script>
+    <script src="/static/js/footer-marquee.js?v={{ version }}"></script>  
+    <script src="/static/js/main.js?v={{ version }}"></script>  
+    <script src="/static/js/progress-manager.js?v={{ version }}"></script> 
+    <script src="/static/js/creative-workshop.js?v={{ version }}"></script> 
+    <script src="/static/js/article-manager.js?v={{ version }}"></script>  
+    <script src="/static/js/template-manager.js?v={{ version }}"></script>  
+    <script src="/static/js/content-editor.js?v={{ version }}"></script>  
+    <script src="/static/js/config-manager.js?v={{ version }}"></script>  
+    <script src="/static/js/theme-manager.js?v={{ version }}"></script>
+    <script src="/static/js/locale-manager.js?v={{ version }}"></script>
+    <script src="/static/js/window-modes.js?v={{ version }}"></script>  
 </body>  
 </html>
